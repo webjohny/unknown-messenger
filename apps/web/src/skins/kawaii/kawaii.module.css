@@ -1,0 +1,828 @@
+/* Kawaii — pastel stickers, fat rounded corners, everything smiling. */
+
+.root {
+  height: 100%;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: 'Quicksand', 'Comic Sans MS', 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #7b4a6e;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.8), rgba(255, 190, 232, 0) 45%),
+    linear-gradient(175deg, #ffe6f6 0%, #ffd6ee 26%, #f3d4fb 58%, #ded4ff 82%, #cfd6ff 100%);
+  overflow: hidden;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  flex: none;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 228, 245, 0.85));
+  box-shadow:
+    inset 0 2px 0 #fff,
+    inset 0 -4px 0 rgba(255, 180, 225, 0.7),
+    0 8px 18px rgba(200, 130, 180, 0.25);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 19px;
+  font-weight: 700;
+  color: #c2489a;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.bubbleButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #ffc0e6, #ff7fc4);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.85),
+    0 4px 0 rgba(194, 72, 154, 0.4);
+  cursor: pointer;
+}
+
+.bubbleButton:hover {
+  filter: brightness(1.04);
+}
+
+.bubbleButton:active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.85),
+    0 2px 0 rgba(194, 72, 154, 0.4);
+}
+
+.bubbleButtonSoft {
+  color: #5b4499;
+  background: linear-gradient(180deg, #e5d4ff, #b899f5);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.9),
+    0 4px 0 rgba(122, 90, 190, 0.35);
+}
+
+.bubbleButton:disabled {
+  filter: grayscale(0.5);
+  cursor: default;
+}
+
+.skinHolder {
+  position: relative;
+}
+
+.skinMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 30;
+  width: 250px;
+  padding: 8px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow:
+    inset 0 -5px 0 rgba(255, 180, 225, 0.6),
+    0 16px 30px rgba(160, 100, 160, 0.3);
+}
+
+.skinOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.skinOption:hover {
+  background: #ffe8f6;
+}
+
+.skinOptionActive {
+  background: linear-gradient(180deg, #f3ecff, #ddd0ff);
+  color: #4c3a86;
+}
+
+.swatch {
+  display: flex;
+  width: 26px;
+  height: 16px;
+  border-radius: 999px;
+  overflow: hidden;
+  flex: none;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.swatch span {
+  flex: 1;
+}
+
+.stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 14px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 238, 250, 0.92));
+  box-shadow:
+    inset 0 3px 0 #fff,
+    inset 0 -6px 0 rgba(255, 180, 225, 0.55),
+    0 14px 28px rgba(190, 120, 175, 0.28);
+  overflow: hidden;
+}
+
+.side {
+  width: 310px;
+  flex: none;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #c2489a;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 14px 10px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: #ffe8f6;
+  color: #d178b8;
+}
+
+.searchRow:focus-within {
+  box-shadow: 0 0 0 3px rgba(255, 127, 196, 0.35);
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: #7b4a6e;
+  outline: 0;
+}
+
+.search::placeholder {
+  color: #d178b8;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px 14px;
+}
+
+.groupLabel {
+  padding: 10px 10px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #9a6bc9;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 20px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: #ffe8f6;
+}
+
+.rowActive,
+.rowActive:hover {
+  background: linear-gradient(180deg, #f3ecff, #ddd0ff);
+  color: #4c3a86;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(180deg, #ffd0ea, #ff85c6);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.8),
+    0 3px 0 rgba(194, 72, 154, 0.3);
+}
+
+.avatarAlt {
+  background: linear-gradient(180deg, #e5d4ff, #b899f5);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.85),
+    0 3px 0 rgba(122, 90, 190, 0.3);
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowMeta {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b0559d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note {
+  padding: 12px;
+  font-size: 13px;
+  color: #b0559d;
+  text-align: center;
+}
+
+.thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Оголошення про дзвінок: це не репліка, тож і не бульбашка. */
+.callNotice {
+  align-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #ffffff, #f0e8ff 55%, #e2d6ff);
+  box-shadow:
+    inset 0 2px 0 #fff,
+    0 5px 12px rgba(150, 120, 200, 0.22);
+  color: #5b4392;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.callNoticeText {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 800;
+}
+
+.msg {
+  max-width: 74%;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.msgOwn {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.msgWho {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b0559d;
+  margin-bottom: 4px;
+}
+
+.bubble {
+  padding: 13px 18px;
+  border-radius: 26px 26px 26px 9px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #7a3f74;
+  background: linear-gradient(180deg, #ffffff, #ffe8f6 55%, #ffd6ef);
+  box-shadow:
+    inset 0 2px 0 #fff,
+    inset 0 -4px 0 rgba(255, 180, 225, 0.7),
+    0 5px 12px rgba(200, 130, 180, 0.22);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.msgOwn .bubble {
+  border-radius: 26px 26px 9px 26px;
+  color: #4c3a86;
+  background: linear-gradient(180deg, #f3ecff, #ddd0ff 55%, #c8b6ff);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -4px 0 rgba(170, 145, 240, 0.5),
+    0 5px 12px rgba(150, 120, 210, 0.24);
+}
+
+.footer {
+  padding: 12px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hint {
+  height: 16px;
+  font-size: 12px;
+  color: #b0559d;
+  text-align: center;
+}
+
+.composer {
+  display: flex;
+  gap: 10px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #ffe8f6;
+  font: inherit;
+  font-size: 14px;
+  color: #7b4a6e;
+  outline: 0;
+}
+
+.input::placeholder {
+  color: #d178b8;
+}
+
+.input:focus {
+  box-shadow: 0 0 0 3px rgba(255, 127, 196, 0.35);
+}
+
+.empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: #b0559d;
+  font-size: 15px;
+}
+
+/* Auth */
+
+.authWrap {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+
+.authCard {
+  width: min(400px, 100%);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 32px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab {
+  flex: 1;
+  padding: 9px 0;
+  border: 0;
+  border-radius: 999px;
+  background: #ffe8f6;
+  font: inherit;
+  font-weight: 700;
+  color: #b0559d;
+  cursor: pointer;
+}
+
+.tabActive {
+  color: #fff;
+  background: linear-gradient(180deg, #ffc0e6, #ff7fc4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b0559d;
+}
+
+.error {
+  padding: 10px 16px;
+  border-radius: 18px;
+  background: #ffe0e8;
+  color: #d1416a;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Anonymous invite link */
+
+.headSpacer {
+  flex: 1;
+}
+
+.inviteButton {
+  padding: 7px 10px;
+}
+
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b0559d;
+}
+
+.orRule::before,
+.orRule::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  border-radius: 999px;
+  background: #ffd6ef;
+}
+
+/* Call */
+
+.call {
+  position: relative;
+  margin: 14px 14px 0;
+  border-radius: 24px;
+  background: #4c3a86;
+  overflow: hidden;
+  flex: none;
+  box-shadow: inset 0 -5px 0 rgba(122, 90, 190, 0.5);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+  padding: 8px;
+  /* A definite height: a camera tile sizes itself from the video stream, and
+     720p would otherwise push the thread and the composer off the screen. */
+  height: clamp(170px, 26vh, 280px);
+}
+
+.tile {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #6b5aa8;
+  cursor: pointer;
+}
+
+/* Дзвінок на весь екран: віконця стовпчиком, кнопки — на стику */
+
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  padding: 14px;
+  background: rgba(60, 44, 110, 0.94);
+}
+
+.expandedStack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expandedTile {
+  composes: tile;
+  flex: 1;
+  min-height: 0;
+  cursor: default;
+}
+
+.expandedBar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(10px);
+}
+
+.tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileName {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4c3a86;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.callBar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 10px;
+}
+
+.captions {
+  padding: 10px 16px;
+  background: rgba(76, 58, 134, 0.85);
+  color: #f3ecff;
+  font-size: 13px;
+  text-align: center;
+}
+
+.captionInterim {
+  opacity: 0.65;
+}
+
+.captionWho {
+  color: #ffc0e6;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+/* Phone */
+
+@media (max-width: 640px) {
+  .root {
+    height: 100dvh;
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    padding-top: calc(10px + env(safe-area-inset-top));
+    gap: 10px;
+  }
+
+  /* Brand, picker and sign-out do not fit on one 360px line, so they wrap;
+     the flexible spacer would fight that, so it goes. */
+  .topBar {
+    padding: 8px 12px;
+    gap: 8px;
+    border-radius: 22px;
+    flex-wrap: wrap;
+  }
+
+  .spacer {
+    display: none;
+  }
+
+  .brand {
+    font-size: 17px;
+  }
+
+  .bubbleButton {
+    padding: 9px 14px;
+    font-size: 12px;
+  }
+
+  .skinMenu {
+    width: min(250px, calc(100vw - 24px));
+    max-height: 60dvh;
+    overflow-y: auto;
+  }
+
+  .stage {
+    gap: 10px;
+  }
+
+  .side,
+  .main {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* One panel at a time: the route already says which one. */
+  .stageRoom .side,
+  .stageList .main {
+    display: none;
+  }
+
+  .panel {
+    border-radius: 24px;
+  }
+
+  .panelHead {
+    padding: 10px 12px;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  /* Call and back become icon buttons so the name keeps its width. */
+  .buttonLabel {
+    display: none;
+  }
+
+  .panelHead .bubbleButton {
+    padding: 9px 12px;
+  }
+
+  .searchRow {
+    margin: 0 10px 8px;
+    padding: 0 14px;
+  }
+
+  .search {
+    /* Under 16px iOS zooms the page in on focus. */
+    font-size: 16px;
+    padding: 11px 0;
+  }
+
+  .list {
+    padding: 0 8px 10px;
+  }
+
+  .row {
+    padding: 10px;
+    border-radius: 18px;
+  }
+
+  .thread {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .msg {
+    max-width: 90%;
+    gap: 8px;
+  }
+
+  /* The per-message avatar costs a third of the bubble's width on a phone. */
+  .thread .avatar {
+    display: none;
+  }
+
+  .bubble {
+    padding: 11px 15px;
+    border-radius: 22px 22px 22px 8px;
+  }
+
+  .msgOwn .bubble {
+    border-radius: 22px 22px 8px 22px;
+  }
+
+  .footer {
+    padding: 8px 10px 10px;
+    gap: 6px;
+  }
+
+  .hint {
+    height: 14px;
+    font-size: 11px;
+  }
+
+  .composer {
+    gap: 8px;
+  }
+
+  .input {
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+
+  .call {
+    margin: 10px 10px 0;
+    border-radius: 20px;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    height: clamp(140px, 22dvh, 220px);
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .callBar {
+    flex-wrap: wrap;
+    padding: 8px;
+  }
+
+  /* Centred vertically the form jumps when the keyboard opens; pin it up top. */
+  .authWrap {
+    align-items: start;
+    overflow-y: auto;
+  }
+
+  .authCard {
+    padding: 20px;
+    border-radius: 26px;
+  }
+
+  /* The sidebar's invite button is the icon alone, so it must not inherit the
+     panel head's shrunken padding and collapse into a sliver. */
+  .panelHead .inviteButton {
+    padding: 9px 11px;
+  }
+
+  /* "анонімний чат без реєстрації" is wider than a 360px button, so it wraps
+     rather than being cut — the phrase is the whole pitch. */
+  .authCard .bubbleButton {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.35;
+  }
+
+  .orRule {
+    font-size: 11px;
+  }
+}
+
+/* Every phone target is at least a comfortable finger. */
+@media (pointer: coarse) {
+  .bubbleButton,
+  .row,
+  .tab,
+  .skinOption {
+    min-height: 44px;
+  }
+}

@@ -1,0 +1,24 @@
+node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+*.log
+.env
+.env.local
+.env.*.local
+.DS_Store
+.turbo/
+apps/media-ai-service/bin/
+
+# Глобальний ~/.gitignore ігнорує Dockerfile / docker-compose.yml / .dockerignore /
+# .gitignore — для цього репо вони частина деплою, тож повертаємо їх назад.
+!.gitignore
+!Dockerfile
+!.dockerignore
+!docker-compose.yml
+!docker-compose.*.yml
+
+.claude/
+themes/

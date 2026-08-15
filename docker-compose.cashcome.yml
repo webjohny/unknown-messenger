@@ -1,0 +1,186 @@
+# Деплой на сервер cash-come (161.35.78.171), домен messenger.cash-come.com.
+#
+# Порти 80/443 там тримає спільний Traefik v2.10 (проєкт /root/docker), тому
+# власного реверс-проксі тут немає: Traefik терминує TLS і маршрутизує за Host
+# та префіксом шляху в межах ОДНОГО домену:
+#
+#   /            → messenger-web  (Next.js :3000)
+#   /api         → messenger-api  (Nest :4000)
+#   /socket.io   → messenger-api  (Socket.io, namespace /ws)
+#   /livekit     → messenger-livekit (:7880, префікс зрізається) — сигналінг wss
+#
+# Медіа LiveKit іде повз Traefik і повз Cloudflare, напряму на IP сервера:
+# UDP 7882 (mux) + TCP 7881 (fallback). Обидва мають бути відкриті в ufw.
+#
+# ВАЖЛИВО: мережа `cashcome` спільна на всі проєкти сервера, а вбудований DNS
+# Docker резолвить імена по ВСІХ підключених мережах. Тому кожен сервіс тут має
+# префікс `messenger-`: інакше `postgres` ловить чужий `postgres-db`, а `web` —
+# `arena_web_1`.
+#
+#   docker-compose -f docker-compose.cashcome.yml -p messenger up -d --build
+#
+# Усі секрети — з .env поруч (git-ignored), у файл вони не потрапляють.
+version: '2.4'
+
+services:
+  messenger-postgres:
+    image: postgres:16-alpine
+    container_name: messenger-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # Портів назовні немає: 5432 на хості вже зайнятий чужим постгресом.
+    networks: [internal]
+    restart: unless-stopped
+
+  messenger-redis:
+    image: redis:7-alpine
+    container_name: messenger-redis
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [internal]
+    restart: unless-stopped
+
+  messenger-livekit:
+    # 1.9+ обслуговує /rtc/v1 — саме туди livekit-client стукає першим. На 1.8
+    # він отримував 404 і відкочувався на /rtc зайвою спробою.
+    image: livekit/livekit-server:v1.9
+    container_name: messenger-livekit
+    command: --config /etc/livekit.yaml
+    environment:
+      LIVEKIT_KEYS: '${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}'
+    volumes:
+      - ./infra/livekit/livekit.prod.yaml:/etc/livekit.yaml:ro
+    ports:
+      - '7881:7881'       # ICE/TCP fallback
+      - '7882:7882/udp'   # ICE/UDP mux
+    depends_on:
+      messenger-redis:
+        condition: service_healthy
+    networks: [internal, cashcome]
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=cashcome'
+      - 'traefik.http.routers.messenger-lk.rule=Host(`messenger.cash-come.com`) && PathPrefix(`/livekit`)'
+      - 'traefik.http.routers.messenger-lk.entrypoints=websecure'
+      - 'traefik.http.routers.messenger-lk.priority=30'
+      - 'traefik.http.routers.messenger-lk.tls=true'
+      - 'traefik.http.routers.messenger-lk.tls.options=cash-come-tls-options@file'
+      - 'traefik.http.routers.messenger-lk.middlewares=messenger-lk-strip@docker'
+      - 'traefik.http.middlewares.messenger-lk-strip.stripprefix.prefixes=/livekit'
+      - 'traefik.http.services.messenger-lk.loadbalancer.server.port=7880'
+    restart: unless-stopped
+
+  messenger-api:
+    build:
+      context: ./apps/api-core
+    container_name: messenger-api
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@messenger-postgres:5432/${POSTGRES_DB}
+      # Схема створюється міграціями. true — лише разовий бутстрап порожньої бази.
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-false}
+      CORS_ORIGINS: ${PUBLIC_WEB_URL}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-15m}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-30d}
+      REDIS_HOST: messenger-redis
+      REDIS_PORT: 6379
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      # LIVEKIT_URL їде клієнту у відповіді POST /api/rooms/join — тут потрібна
+      # публічна адреса. Серверний SDK ходить у SFU по LIVEKIT_HTTP_URL, і от там
+      # внутрішнє ім'я.
+      LIVEKIT_URL: ${PUBLIC_LIVEKIT_URL}
+      LIVEKIT_HTTP_URL: http://messenger-livekit:7880
+    depends_on:
+      messenger-postgres:
+        condition: service_healthy
+      messenger-redis:
+        condition: service_healthy
+    networks: [internal, cashcome]
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=cashcome'
+      - 'traefik.http.routers.messenger-api.rule=Host(`messenger.cash-come.com`) && (PathPrefix(`/api`) || PathPrefix(`/socket.io`))'
+      - 'traefik.http.routers.messenger-api.entrypoints=websecure'
+      - 'traefik.http.routers.messenger-api.priority=20'
+      - 'traefik.http.routers.messenger-api.tls=true'
+      - 'traefik.http.routers.messenger-api.tls.options=cash-come-tls-options@file'
+      - 'traefik.http.services.messenger-api.loadbalancer.server.port=4000'
+    restart: unless-stopped
+
+  messenger-web:
+    build:
+      context: ./apps/web
+      args:
+        # Той самий домен: /api і /socket.io Traefik віддає в messenger-api.
+        NEXT_PUBLIC_API_URL: ${PUBLIC_WEB_URL}
+        NEXT_PUBLIC_WS_URL: ${PUBLIC_WEB_URL}
+        NEXT_PUBLIC_LIVEKIT_URL: ${PUBLIC_LIVEKIT_URL}
+    container_name: messenger-web
+    depends_on:
+      - messenger-api
+    networks: [internal, cashcome]
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=cashcome'
+      # Найнижчий пріоритет: цей роутер ловить усе, що не забрали /api та /livekit.
+      - 'traefik.http.routers.messenger-web.rule=Host(`messenger.cash-come.com`)'
+      - 'traefik.http.routers.messenger-web.entrypoints=websecure'
+      - 'traefik.http.routers.messenger-web.priority=10'
+      - 'traefik.http.routers.messenger-web.tls=true'
+      - 'traefik.http.routers.messenger-web.tls.options=cash-come-tls-options@file'
+      - 'traefik.http.services.messenger-web.loadbalancer.server.port=3000'
+    restart: unless-stopped
+
+  messenger-media:
+    build:
+      context: ./apps/media-ai-service
+    container_name: messenger-media
+    environment:
+      LIVEKIT_URL: ws://messenger-livekit:7880
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      REDIS_URL: redis://messenger-redis:6379
+      BOT_IDENTITY: ${BOT_IDENTITY:-silent-bot}
+      STT_PROVIDER: ${STT_PROVIDER:-mock}
+      DEEPGRAM_API_KEY: ${DEEPGRAM_API_KEY:-}
+      DEEPGRAM_MODEL: ${DEEPGRAM_MODEL:-nova-2}
+      DEEPGRAM_LANGUAGE: ${DEEPGRAM_LANGUAGE:-uk}
+      REDIS_CONTROL_CHANNEL: ${REDIS_CONTROL_CHANNEL:-media:control}
+      REDIS_TRANSCRIPT_CHANNEL: ${REDIS_TRANSCRIPT_CHANNEL:-transcripts:final}
+    depends_on:
+      messenger-redis:
+        condition: service_healthy
+      messenger-livekit:
+        condition: service_started
+    networks: [internal]
+    restart: unless-stopped
+
+networks:
+  internal:
+  # Спільна мережа Traefik — створена проєктом /root/docker.
+  cashcome:
+    external: true
+
+volumes:
+  pgdata:
+  redisdata:

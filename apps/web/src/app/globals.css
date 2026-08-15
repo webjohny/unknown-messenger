@@ -1,0 +1,37 @@
+/*
+ * The core owns no appearance. This file may only reset the browser's own
+ * styling — every colour, font and shape in the app comes from the active
+ * skin's CSS module, which nothing outside that skin can reach.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  /* A skin paints its own background; this only avoids a white flash between
+     the browser default and the skin's root element. */
+  background: #101014;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+img,
+video {
+  display: block;
+  max-width: 100%;
+}

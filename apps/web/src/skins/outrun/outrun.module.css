@@ -1,0 +1,823 @@
+/* Outrun — neon on a night grid: magenta for them, cyan for you. */
+
+.root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background:
+    radial-gradient(120% 100% at 50% 45%, rgba(0, 0, 0, 0) 30%, rgba(12, 2, 25, 0.86) 100%),
+    linear-gradient(180deg, #10021f 0%, #26043a 55%, #3a0752 100%);
+  color: #dcf7ff;
+  font-family: 'Share Tech Mono', ui-monospace, 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+/*
+ * The grid is drawn by the ::before so that its overhang stays inside a
+ * clipping layer. Overhanging the root directly made the root scrollable, and
+ * any scrollIntoView (a click on the skin menu, say) then slid the whole UI
+ * sideways by the width of the overhang.
+ */
+.horizon {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.horizon::before {
+  content: '';
+  position: absolute;
+  left: -20%;
+  right: -20%;
+  bottom: -10%;
+  height: 46%;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 62, 200, 0.35) 0 1px,
+      rgba(255, 62, 200, 0) 1px 64px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(34, 230, 255, 0.28) 0 1px,
+      rgba(34, 230, 255, 0) 1px 40px
+    );
+  transform: perspective(340px) rotateX(68deg);
+  transform-origin: bottom center;
+  opacity: 0.55;
+}
+
+.scan {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  background: repeating-linear-gradient(rgba(0, 0, 0, 0.3) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
+}
+
+.marquee {
+  position: relative;
+  /* Above the deck and the scanline overlay, so the skin menu stays on top. */
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 20px;
+  flex: none;
+  border-bottom: 1px solid rgba(255, 62, 200, 0.5);
+  background: linear-gradient(90deg, rgba(255, 62, 200, 0.28), rgba(255, 62, 200, 0.02));
+}
+
+.logo {
+  font-size: 20px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: #ff3ec8;
+  text-shadow:
+    0 0 8px rgba(255, 62, 200, 0.8),
+    0 0 22px rgba(255, 62, 200, 0.5);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.meta {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #b06fd8;
+}
+
+.neonButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border: 1px solid #22e6ff;
+  background: rgba(34, 230, 255, 0.1);
+  color: #22e6ff;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(34, 230, 255, 0.25);
+}
+
+.neonButton:hover {
+  background: rgba(34, 230, 255, 0.24);
+}
+
+.neonButtonPink {
+  border-color: #ff3ec8;
+  color: #ff9ae8;
+  background: rgba(255, 62, 200, 0.1);
+  box-shadow: 0 0 14px rgba(255, 62, 200, 0.28);
+}
+
+.neonButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.skinHolder {
+  position: relative;
+}
+
+.skinMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 30;
+  width: 260px;
+  border: 1px solid #ff3ec8;
+  background: rgba(16, 2, 31, 0.96);
+  box-shadow: 0 0 30px rgba(255, 62, 200, 0.3);
+}
+
+.skinOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 62, 200, 0.2);
+  background: none;
+  color: #dcf7ff;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+
+.skinOption:hover {
+  background: rgba(255, 62, 200, 0.16);
+}
+
+.skinOptionActive {
+  color: #22e6ff;
+}
+
+.swatch {
+  display: flex;
+  width: 26px;
+  height: 10px;
+  flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.swatch span {
+  flex: 1;
+}
+
+.deck {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.stations {
+  width: 280px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid rgba(34, 230, 255, 0.35);
+  background: linear-gradient(180deg, rgba(45, 6, 72, 0.84), rgba(20, 3, 36, 0.78));
+}
+
+.stationsHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(34, 230, 255, 0.3);
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #22e6ff;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px;
+  padding: 0 12px;
+  border: 1px solid rgba(34, 230, 255, 0.4);
+  background: rgba(34, 230, 255, 0.06);
+  color: #22e6ff;
+}
+
+.searchRow:focus-within {
+  border-color: #ff3ec8;
+  box-shadow: 0 0 16px rgba(255, 62, 200, 0.3);
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 0;
+  border: 0;
+  background: transparent;
+  color: #dcf7ff;
+  font: inherit;
+  outline: 0;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.groupLabel {
+  padding: 10px 16px 4px;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #7d5f96;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 16px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.row:hover {
+  border-left-color: rgba(34, 230, 255, 0.6);
+  background: rgba(34, 230, 255, 0.08);
+}
+
+.rowActive,
+.rowActive:hover {
+  border-left-color: #ff3ec8;
+  background: linear-gradient(90deg, rgba(255, 62, 200, 0.28), rgba(255, 62, 200, 0.02));
+}
+
+.rowName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.rowMeta {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #7d5f96;
+}
+
+.note {
+  padding: 12px 16px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #7d5f96;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  flex: none;
+  border-bottom: 1px solid rgba(255, 62, 200, 0.35);
+  background: rgba(16, 2, 31, 0.75);
+}
+
+.title {
+  font-size: 18px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #ff9ae8;
+  text-shadow: 0 0 10px rgba(255, 62, 200, 0.6);
+}
+
+.feed {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* A call announcement: not something anybody said, so not a message either. */
+.callNotice {
+  align-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 1px solid #ff3ec8;
+  background: rgba(255, 62, 200, 0.1);
+  box-shadow: 0 0 18px rgba(255, 62, 200, 0.22);
+  color: #ff9ae8;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.callNoticeText {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.msg {
+  max-width: 72%;
+}
+
+.msgOwn {
+  align-self: flex-end;
+}
+
+.msgWho {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #ff9ae8;
+  margin-bottom: 5px;
+}
+
+.msgOwn .msgWho {
+  color: #6fe4ff;
+  text-align: right;
+}
+
+.msgBody {
+  padding: 12px 15px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #ffe4f8;
+  background: linear-gradient(120deg, rgba(255, 62, 200, 0.16), rgba(255, 62, 200, 0.03));
+  border-left: 3px solid #ff3ec8;
+  box-shadow: 0 0 24px rgba(255, 62, 200, 0.14);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.msgOwn .msgBody {
+  color: #dcf7ff;
+  background: linear-gradient(120deg, rgba(34, 230, 255, 0.16), rgba(34, 230, 255, 0.03));
+  border-left: 0;
+  border-right: 3px solid #22e6ff;
+  box-shadow: 0 0 24px rgba(34, 230, 255, 0.14);
+}
+
+.footer {
+  flex: none;
+  border-top: 1px solid rgba(34, 230, 255, 0.35);
+  background: rgba(16, 2, 31, 0.8);
+  padding: 10px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticker {
+  height: 14px;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #ffb03a;
+}
+
+.composer {
+  display: flex;
+  gap: 12px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 62, 200, 0.5);
+  background: rgba(255, 62, 200, 0.06);
+  color: #ffe4f8;
+  font: inherit;
+  font-size: 15px;
+  outline: 0;
+}
+
+.input:focus {
+  border-color: #22e6ff;
+  box-shadow: 0 0 18px rgba(34, 230, 255, 0.3);
+}
+
+.empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: #7d5f96;
+}
+
+/* Auth */
+
+.authWrap {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.authPanel {
+  width: min(430px, 100%);
+  border: 1px solid #ff3ec8;
+  background: linear-gradient(180deg, rgba(45, 6, 72, 0.86), rgba(22, 3, 40, 0.8));
+  box-shadow: 0 0 44px rgba(255, 62, 200, 0.25);
+}
+
+.authBody {
+  padding: 18px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #b06fd8;
+}
+
+.error {
+  padding: 10px 14px;
+  border-left: 3px solid #ff3ec8;
+  background: rgba(255, 62, 200, 0.1);
+  color: #ffd8f6;
+  font-size: 13px;
+}
+
+/* Anonymous invite link */
+
+.inviteRow {
+  display: flex;
+  margin: 0 12px 12px;
+}
+
+.inviteButton {
+  width: 100%;
+  padding: 10px 12px;
+}
+
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #7d5f96;
+}
+
+.orRule::before,
+.orRule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 62, 200, 0.4);
+}
+
+/* Call */
+
+.call {
+  position: relative;
+  flex: none;
+  border-bottom: 1px solid rgba(34, 230, 255, 0.4);
+  background: #04202a;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 6px;
+  padding: 6px;
+  /* A definite height: a camera tile sizes itself from the video stream, and
+     720p would otherwise push the thread and the composer off the screen. */
+  height: clamp(170px, 26vh, 280px);
+}
+
+.tile {
+  position: relative;
+  border: 1px solid #22e6ff;
+  background: #10021f;
+  overflow: hidden;
+  box-shadow: inset 0 0 26px rgba(34, 230, 255, 0.18);
+  cursor: pointer;
+}
+
+/* The call blown up over the whole window: feeds stacked, controls on the seam */
+
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  padding: 12px;
+  background: rgba(6, 1, 14, 0.95);
+}
+
+.expandedStack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.expandedTile {
+  composes: tile;
+  flex: 1;
+  min-height: 0;
+  cursor: default;
+}
+
+.expandedBar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(34, 230, 255, 0.5);
+  background: rgba(16, 2, 31, 0.92);
+  box-shadow: 0 0 26px rgba(34, 230, 255, 0.2);
+}
+
+.tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileName {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 1px 8px;
+  background: rgba(16, 2, 31, 0.85);
+  color: #22e6ff;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.callBar {
+  display: flex;
+  gap: 10px;
+  padding: 0 10px 10px;
+}
+
+.captions {
+  padding: 10px 16px;
+  border-top: 1px solid rgba(34, 230, 255, 0.3);
+  background: rgba(16, 2, 31, 0.9);
+  color: #dcf7ff;
+  font-size: 13px;
+}
+
+.captionInterim {
+  color: #7d5f96;
+}
+
+.captionWho {
+  color: #ff3ec8;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-right: 8px;
+}
+
+/* Phone */
+
+@media (max-width: 640px) {
+  .root {
+    height: 100dvh;
+  }
+
+  .marquee {
+    gap: 10px;
+    padding: 8px 12px;
+    padding-top: calc(8px + env(safe-area-inset-top));
+  }
+
+  /* The station ident and the operator tag are decoration; the logo and the
+     two controls are what a phone-width bar can actually hold. */
+  .meta {
+    display: none;
+  }
+
+  .logo {
+    font-size: 16px;
+    letter-spacing: 3px;
+  }
+
+  .neonButton {
+    padding: 9px 12px;
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .skinMenu {
+    width: min(260px, calc(100vw - 24px));
+    max-height: 60dvh;
+    overflow-y: auto;
+  }
+
+  .stations,
+  .main {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .stations {
+    border-right: 0;
+  }
+
+  /* One pane at a time: the route already says which one. */
+  .deckRoom .stations,
+  .deckList .main {
+    display: none;
+  }
+
+  .stationsHead {
+    padding: 10px 12px;
+    letter-spacing: 2px;
+  }
+
+  .searchRow {
+    margin: 10px;
+    padding: 0 10px;
+  }
+
+  .search {
+    /* Under 16px iOS zooms the page in on focus. */
+    font-size: 16px;
+    padding: 11px 0;
+  }
+
+  .row {
+    padding: 11px 12px;
+    gap: 10px;
+  }
+
+  .head {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  /* Go live and back become icon buttons so the title keeps its width. */
+  .neonLabel {
+    display: none;
+  }
+
+  .head .neonButton {
+    padding: 10px 11px;
+  }
+
+  .title {
+    font-size: 15px;
+    letter-spacing: 2px;
+  }
+
+  .feed {
+    padding: 12px;
+  }
+
+  .msg {
+    max-width: 88%;
+  }
+
+  .msgBody {
+    padding: 10px 13px;
+  }
+
+  .footer {
+    padding: 8px 12px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .ticker {
+    letter-spacing: 2px;
+  }
+
+  .composer {
+    gap: 8px;
+  }
+
+  .input {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .composer .neonButton {
+    padding: 0 16px;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    height: clamp(140px, 22dvh, 220px);
+    gap: 5px;
+    padding: 5px;
+  }
+
+  .callBar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 8px 8px;
+  }
+
+  .authWrap {
+    /* Centred vertically the form jumps when the keyboard opens. */
+    align-items: start;
+    padding: 14px;
+    overflow-y: auto;
+  }
+
+  .authBody {
+    padding: 14px 14px 18px;
+  }
+
+  .tabs {
+    gap: 8px;
+  }
+
+  .inviteRow {
+    margin: 0 10px 10px;
+  }
+
+  /* "Anon station, no signup" is wider than a 360px button at this letter
+     spacing, so it wraps rather than being cut. */
+  .inviteButton {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.5;
+    letter-spacing: 1px;
+    padding: 10px 12px;
+  }
+
+  .orRule {
+    letter-spacing: 3px;
+  }
+}
+
+/* Every phone target is at least a comfortable finger. */
+@media (pointer: coarse) {
+  .neonButton,
+  .row,
+  .skinOption {
+    min-height: 44px;
+  }
+}

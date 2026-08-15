@@ -1,0 +1,26 @@
+port: 7880
+log_level: info
+
+rtc:
+  tcp_port: 7881
+  # Single UDP mux port instead of a range: one hole in the firewall and one
+  # published docker port, which is what LiveKit recommends for a single node.
+  udp_port: 7882
+  # The SFU has to advertise the droplet's public IP in its ICE candidates —
+  # inside docker it only sees 172.x.
+  use_external_ip: true
+
+redis:
+  # Мережа `cashcome` спільна на весь сервер, тож ім'я має бути унікальним —
+  # див. коментар у docker-compose.cashcome.yml.
+  address: messenger-redis:6379
+
+turn:
+  enabled: false   # 443 is taken by Traefik; TCP 7881 is the fallback path
+
+room:
+  auto_create: false          # rooms are created explicitly by api-core
+  empty_timeout: 300
+  max_participants: 100
+
+# keys are injected via LIVEKIT_KEYS env var (see docker-compose.cashcome.yml)

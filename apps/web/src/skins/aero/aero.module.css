@@ -1,0 +1,842 @@
+/* Aero — frosted glass cards floating over an aqua gradient. */
+
+.root {
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: #06344f;
+  background:
+    radial-gradient(60% 40% at 60% 40%, rgba(140, 255, 220, 0.45), rgba(140, 255, 220, 0) 65%),
+    linear-gradient(190deg, #9ff5e0 0%, #46d8e8 22%, #12a6e0 48%, #0a6fc4 74%, #063f8e 100%);
+  overflow: hidden;
+}
+
+.glassBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  flex: none;
+  /* Each frosted card is its own stacking context; without this the skin menu
+     hanging off the bar is painted underneath them. */
+  position: relative;
+  z-index: 10;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.6), rgba(190, 245, 255, 0.28));
+  backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 10px 26px rgba(4, 50, 74, 0.28);
+}
+
+.brand {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #075a7f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff, #cdf3ff 50%, #7fd7f7);
+  color: #06344f;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 3px 8px rgba(4, 50, 74, 0.22);
+}
+
+.pill:hover {
+  filter: brightness(1.05);
+}
+
+.pillGhost {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.skinHolder {
+  position: relative;
+}
+
+.skinMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 30;
+  width: 260px;
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 40px rgba(4, 50, 74, 0.35);
+}
+
+.skinOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.skinOption:hover {
+  background: linear-gradient(180deg, #cdf3ff, #7fd7f7);
+}
+
+.skinOptionActive {
+  font-weight: 600;
+}
+
+.swatch {
+  display: flex;
+  width: 26px;
+  height: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(6, 52, 79, 0.25);
+  flex: none;
+}
+
+.swatch span {
+  flex: 1;
+}
+
+.stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 14px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(206, 244, 255, 0.86) 100%);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 20px 44px rgba(4, 50, 74, 0.32);
+  overflow: hidden;
+}
+
+.sideCard {
+  width: 320px;
+  flex: none;
+}
+
+.mainCard {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #075a7f;
+  border-bottom: 1px solid rgba(10, 111, 168, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(180, 240, 255, 0.22));
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 14px;
+  padding: 0 14px;
+  border: 1px solid rgba(10, 111, 168, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #0a8fc4;
+}
+
+.searchRow:focus-within {
+  border-color: #12a6e0;
+  box-shadow: 0 0 0 3px rgba(18, 166, 224, 0.25);
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 9px 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  outline: 0;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px 12px;
+}
+
+.groupLabel {
+  padding: 8px 8px 4px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0a8fc4;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 14px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.rowActive,
+.rowActive:hover {
+  background: linear-gradient(180deg, rgba(190, 255, 232, 0.96), rgba(42, 206, 166, 0.92));
+  color: #023b31;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  color: #06344f;
+  background: linear-gradient(180deg, #ffffff, #b8ecff 50%, #6fd0f5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 2px 6px rgba(4, 50, 74, 0.25);
+}
+
+.avatarOnline {
+  background: linear-gradient(180deg, #b7ffe4, #29d6a8 52%, #0e9c7d);
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowMeta {
+  display: block;
+  font-size: 12px;
+  color: #077;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #075a7f;
+  opacity: 0.8;
+}
+
+.thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* A call announcement: not something anybody said, so not a bubble either. */
+.callNotice {
+  align-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 6px 18px rgba(6, 52, 79, 0.12);
+  color: #06344f;
+  font-size: 13px;
+}
+
+.callNoticeText {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.msg {
+  max-width: 74%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.msgOwn {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.msgWho {
+  font-size: 11px;
+  color: #0a6fa8;
+  padding: 0 8px;
+}
+
+.bubble {
+  padding: 12px 16px;
+  border-radius: 20px 20px 20px 6px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #05405f;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(214, 246, 255, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 4px 12px rgba(4, 70, 110, 0.18);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.msgOwn .bubble {
+  border-radius: 20px 20px 6px 20px;
+  color: #023b31;
+  background: linear-gradient(
+    180deg,
+    rgba(190, 255, 232, 0.96) 0%,
+    rgba(108, 235, 199, 0.9) 48%,
+    rgba(42, 206, 166, 0.92) 100%
+  );
+}
+
+.footer {
+  padding: 12px 16px;
+  border-top: 1px solid rgba(10, 111, 168, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(190, 245, 255, 0.24));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hint {
+  height: 16px;
+  font-size: 12px;
+  color: #0a6fa8;
+}
+
+.composer {
+  display: flex;
+  gap: 10px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  font: inherit;
+  font-size: 14px;
+  outline: 0;
+  box-shadow: inset 0 1px 3px rgba(4, 50, 74, 0.12);
+}
+
+.input:focus {
+  box-shadow:
+    inset 0 1px 3px rgba(4, 50, 74, 0.12),
+    0 0 0 3px rgba(18, 166, 224, 0.28);
+}
+
+.send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 22px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  color: #023b31;
+  background: linear-gradient(180deg, #b7ffe4, #29d6a8 52%, #0e9c7d);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 4px 12px rgba(4, 70, 110, 0.25);
+  cursor: pointer;
+}
+
+.send:disabled {
+  filter: grayscale(0.6);
+  cursor: default;
+}
+
+/* In the composer the input stretches the row; standing alone in the sign-in
+   form nothing does, and the button collapses to its line box. */
+.authCard .send {
+  min-height: 42px;
+}
+
+.empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: #075a7f;
+  font-size: 15px;
+}
+
+/* Anonymous invite link */
+
+.inviteRow {
+  display: flex;
+  padding: 0 14px 10px;
+}
+
+.inviteRow .pill {
+  width: 100%;
+  justify-content: center;
+}
+
+.inviteButton {
+  justify-content: center;
+  padding: 10px 14px;
+}
+
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #0a8fc4;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.orRule::before,
+.orRule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(10, 111, 168, 0.25);
+}
+
+/* Auth */
+
+.authWrap {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+
+.authCard {
+  width: min(420px, 100%);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-radius: 26px;
+}
+
+.tabs {
+  display: flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(10, 111, 168, 0.12);
+}
+
+.tab {
+  flex: 1;
+  padding: 8px 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  color: #075a7f;
+  cursor: pointer;
+}
+
+.tabActive {
+  font-weight: 600;
+  color: #023b31;
+  background: linear-gradient(180deg, #b7ffe4, #29d6a8);
+  box-shadow: 0 2px 6px rgba(4, 70, 110, 0.25);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: #075a7f;
+}
+
+.error {
+  padding: 9px 14px;
+  border-radius: 14px;
+  background: rgba(217, 79, 61, 0.14);
+  color: #a5321f;
+  font-size: 13px;
+}
+
+/* Call */
+
+.call {
+  position: relative;
+  margin: 14px 14px 0;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(4, 50, 74, 0.9);
+  overflow: hidden;
+  flex: none;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 6px;
+  padding: 6px;
+  /* A definite height: a camera tile sizes itself from the video stream, and
+     720p would otherwise push the thread and the composer off the screen. */
+  height: clamp(170px, 26vh, 280px);
+}
+
+.tile {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #063f8e;
+  cursor: pointer;
+}
+
+/* The call blown up over the whole window: feeds stacked, controls on the seam */
+
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  padding: 14px;
+  background: rgba(4, 40, 62, 0.88);
+  backdrop-filter: blur(14px);
+}
+
+.expandedStack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expandedTile {
+  composes: tile;
+  flex: 1;
+  min-height: 0;
+  cursor: default;
+}
+
+.expandedBar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(12px);
+}
+
+.tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileName {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: #06344f;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.callBar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(10px);
+}
+
+.captions {
+  padding: 8px 14px;
+  background: rgba(4, 50, 74, 0.75);
+  color: #dff4ff;
+  font-size: 13px;
+}
+
+.captionInterim {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.captionWho {
+  color: #7fe0ff;
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+/* Phone */
+
+@media (max-width: 640px) {
+  .root {
+    height: 100dvh;
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    padding-top: calc(10px + env(safe-area-inset-top));
+    gap: 10px;
+  }
+
+  /* Brand, picker and sign-out do not fit on one 360px line, so they wrap;
+     the flexible spacer would fight that, so it goes. */
+  .glassBar {
+    padding: 8px 10px;
+    gap: 8px;
+    border-radius: 16px;
+    flex-wrap: wrap;
+  }
+
+  .spacer {
+    display: none;
+  }
+
+  .brand {
+    font-size: 16px;
+  }
+
+  .pill {
+    padding: 8px 12px;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .skinMenu {
+    width: min(280px, calc(100vw - 24px));
+    max-height: 60dvh;
+    overflow-y: auto;
+  }
+
+  .stage {
+    gap: 10px;
+  }
+
+  .sideCard,
+  .mainCard {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* One card at a time: the route already says which one. */
+  .stageRoom .sideCard,
+  .stageList .mainCard {
+    display: none;
+  }
+
+  .card {
+    border-radius: 18px;
+    /* Two stacked blur layers per card cost real frames on a phone. */
+    backdrop-filter: none;
+  }
+
+  .cardHead {
+    padding: 10px 12px;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  /* Call and back become icon buttons so the room name keeps its width. */
+  .pillLabel {
+    display: none;
+  }
+
+  .cardHead .pill {
+    padding: 8px 10px;
+  }
+
+  .searchRow {
+    margin: 10px;
+    padding: 0 12px;
+  }
+
+  .search {
+    /* Under 16px iOS zooms the page in on focus. */
+    font-size: 16px;
+    padding: 10px 0;
+  }
+
+  .list {
+    padding: 0 8px 10px;
+  }
+
+  .row {
+    padding: 10px;
+    min-height: 52px;
+  }
+
+  .thread {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .msg {
+    max-width: 86%;
+  }
+
+  .bubble {
+    padding: 10px 14px;
+    font-size: 15px;
+  }
+
+  .footer {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .hint {
+    height: 14px;
+    font-size: 11px;
+  }
+
+  .composer {
+    gap: 8px;
+  }
+
+  .input {
+    font-size: 16px;
+    padding: 11px 14px;
+  }
+
+  .send {
+    padding: 0 16px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    height: clamp(140px, 22dvh, 220px);
+  }
+
+  .call {
+    margin: 10px 10px 0;
+  }
+
+  .callBar {
+    flex-wrap: wrap;
+  }
+
+  .authCard {
+    padding: 20px;
+    border-radius: 22px;
+  }
+
+  /* Centred vertically the form jumps when the keyboard opens; pin it up top. */
+  .authWrap {
+    align-items: start;
+    padding-top: 8px;
+    overflow-y: auto;
+  }
+
+  .inviteRow {
+    padding: 0 10px 8px;
+  }
+
+  /* "Анонімний чат без реєстрації" is wider than a 360px button, so it wraps
+     rather than being cut — the sentence is the whole pitch. */
+  .inviteButton,
+  .inviteRow .pill {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.3;
+    padding: 10px 12px;
+  }
+
+  .orRule {
+    font-size: 11px;
+  }
+}
+
+/* Every phone target is at least a comfortable finger. */
+@media (pointer: coarse) {
+  .pill,
+  .row,
+  .send,
+  .tab,
+  .skinOption {
+    min-height: 44px;
+  }
+}

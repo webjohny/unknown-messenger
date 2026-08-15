@@ -1,0 +1,874 @@
+/* HUD — a tactical overlay: cut corners, thin cyan rules, orange for them. */
+
+.root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(79, 227, 255, 0.08), rgba(4, 7, 15, 0) 60%),
+    #04070f;
+  color: #d8f4ff;
+  font-family: 'Chakra Petch', 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.scan {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: repeating-linear-gradient(rgba(0, 0, 0, 0.22) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
+}
+
+.telemetry {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 18px;
+  flex: none;
+  border-bottom: 1px solid rgba(79, 227, 255, 0.35);
+  background: linear-gradient(90deg, rgba(9, 20, 34, 0.86), rgba(9, 20, 34, 0.5));
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #5b8298;
+}
+
+.callsign {
+  color: #4fe3ff;
+  font-size: 15px;
+  letter-spacing: 4px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.reading {
+  color: #7fd8f0;
+}
+
+.readingWarn {
+  color: #ff8a2b;
+}
+
+.ghostButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border: 1px solid rgba(79, 227, 255, 0.5);
+  background: rgba(79, 227, 255, 0.06);
+  color: #4fe3ff;
+  font: inherit;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+.ghostButton:hover {
+  background: rgba(79, 227, 255, 0.18);
+}
+
+.ghostButtonWarn {
+  border-color: rgba(255, 138, 43, 0.55);
+  color: #ff8a2b;
+  background: rgba(255, 138, 43, 0.08);
+}
+
+.ghostButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.skinHolder {
+  position: relative;
+}
+
+.skinMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  width: 260px;
+  border: 1px solid rgba(79, 227, 255, 0.45);
+  background: rgba(6, 14, 26, 0.96);
+  box-shadow: 0 0 30px rgba(79, 227, 255, 0.15);
+}
+
+.skinOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 1px solid rgba(79, 227, 255, 0.14);
+  background: none;
+  color: #d8f4ff;
+  font: inherit;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+
+.skinOption:hover {
+  background: rgba(79, 227, 255, 0.14);
+}
+
+.skinOptionActive {
+  color: #4fe3ff;
+}
+
+.swatch {
+  display: flex;
+  width: 24px;
+  height: 10px;
+  flex: none;
+  border: 1px solid rgba(79, 227, 255, 0.5);
+}
+
+.swatch span {
+  flex: 1;
+}
+
+.grid {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.rail {
+  width: 300px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid rgba(79, 227, 255, 0.28);
+  background: linear-gradient(160deg, rgba(9, 20, 34, 0.82), rgba(6, 13, 24, 0.6));
+}
+
+.railHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(79, 227, 255, 0.28);
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #4fe3ff;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 12px;
+  padding: 0 12px;
+  border: 1px solid rgba(79, 227, 255, 0.35);
+  background: rgba(79, 227, 255, 0.06);
+  color: #4fe3ff;
+}
+
+.searchRow:focus-within {
+  border-color: #4fe3ff;
+  box-shadow: 0 0 16px rgba(79, 227, 255, 0.25);
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #d8f4ff;
+  font: inherit;
+  font-size: 13px;
+  outline: 0;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.groupLabel {
+  padding: 8px 16px;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #5b8298;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 16px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: rgba(79, 227, 255, 0.08);
+  border-left-color: rgba(79, 227, 255, 0.6);
+}
+
+.rowActive,
+.rowActive:hover {
+  background: linear-gradient(90deg, rgba(79, 227, 255, 0.18), rgba(79, 227, 255, 0.02));
+  border-left-color: #4fe3ff;
+}
+
+.tag {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(79, 227, 255, 0.5);
+  color: #4fe3ff;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 12px;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+
+.tagWarn {
+  border-color: rgba(255, 138, 43, 0.6);
+  color: #ff8a2b;
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowName {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowMeta {
+  display: block;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #5b8298;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note {
+  padding: 12px 16px;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #5b8298;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.channelHead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  flex: none;
+  border-bottom: 1px solid rgba(79, 227, 255, 0.28);
+  background: rgba(4, 10, 20, 0.85);
+}
+
+.channelName {
+  font-size: 18px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #4fe3ff;
+}
+
+.thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* A call announcement: not traffic anybody sent, so not a message either. */
+.callNotice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 138, 43, 0.45);
+  background: rgba(255, 138, 43, 0.08);
+  color: #ffd0a6;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.callNoticeText {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: #ff8a2b;
+}
+
+.msg {
+  max-width: 74%;
+}
+
+.msgOwn {
+  align-self: flex-end;
+  text-align: right;
+}
+
+.msgWho {
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #b3733a;
+}
+
+.msgOwn .msgWho {
+  color: #3d8ba3;
+}
+
+.msgBody {
+  margin-top: 6px;
+  padding: 12px 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #ffe2c6;
+  text-align: left;
+  background: linear-gradient(120deg, rgba(255, 138, 43, 0.14), rgba(255, 138, 43, 0.03));
+  border-left: 2px solid #ff8a2b;
+  box-shadow: 0 0 26px rgba(255, 138, 43, 0.1);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.msgOwn .msgBody {
+  color: #d8f4ff;
+  background: linear-gradient(120deg, rgba(79, 227, 255, 0.13), rgba(79, 227, 255, 0.03));
+  border-left: 0;
+  border-right: 2px solid #4fe3ff;
+  box-shadow: 0 0 26px rgba(0, 170, 230, 0.12);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #5b8298;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(79, 227, 255, 0.18);
+}
+
+.commandBar {
+  flex: none;
+  border-top: 1px solid rgba(79, 227, 255, 0.28);
+  background: rgba(4, 10, 20, 0.9);
+}
+
+.status {
+  display: flex;
+  gap: 18px;
+  padding: 6px 20px;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #5b8298;
+}
+
+.composer {
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px 16px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 14px;
+  border: 1px solid rgba(79, 227, 255, 0.35);
+  background: rgba(79, 227, 255, 0.06);
+  color: #d8f4ff;
+  font: inherit;
+  font-size: 15px;
+  outline: 0;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.input:focus {
+  border-color: #4fe3ff;
+  box-shadow: 0 0 18px rgba(79, 227, 255, 0.22);
+}
+
+.send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 22px;
+  border: 1px solid #4fe3ff;
+  background: rgba(79, 227, 255, 0.16);
+  color: #4fe3ff;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.send:hover {
+  background: rgba(79, 227, 255, 0.3);
+}
+
+.send:disabled {
+  border-color: rgba(79, 227, 255, 0.25);
+  color: #40607a;
+  cursor: default;
+}
+
+/* In the composer the input stretches the row; standing alone in the sign-in
+   form nothing does, and the button collapses to its line box. */
+.authBody .send {
+  min-height: 42px;
+}
+
+.empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #40607a;
+}
+
+/* Auth */
+
+.authWrap {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.authPanel {
+  width: min(440px, 100%);
+  border: 1px solid rgba(79, 227, 255, 0.4);
+  background: linear-gradient(160deg, rgba(9, 20, 34, 0.9), rgba(6, 13, 24, 0.75));
+  box-shadow: 0 0 40px rgba(79, 227, 255, 0.12);
+}
+
+.authBody {
+  padding: 18px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #5b8298;
+}
+
+.error {
+  padding: 10px 14px;
+  border-left: 2px solid #ff8a2b;
+  background: rgba(255, 138, 43, 0.08);
+  color: #ffd7b0;
+  font-size: 13px;
+}
+
+/* Anonymous invite link */
+
+.inviteRow {
+  display: flex;
+  margin: 0 12px 10px;
+}
+
+.inviteButton {
+  width: 100%;
+  justify-content: center;
+  padding: 9px 12px;
+}
+
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #5b8298;
+}
+
+.orRule::before,
+.orRule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(79, 227, 255, 0.28);
+}
+
+/* Call */
+
+.call {
+  position: relative;
+  flex: none;
+  border-bottom: 1px solid rgba(79, 227, 255, 0.28);
+  background: #04070f;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 6px;
+  padding: 8px;
+  /* A definite height: a camera tile sizes itself from the video stream, and
+     720p would otherwise push the thread and the composer off the screen. */
+  height: clamp(170px, 26vh, 280px);
+}
+
+.tile {
+  position: relative;
+  border: 1px solid rgba(79, 227, 255, 0.45);
+  background: #0a1420;
+  overflow: hidden;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  cursor: pointer;
+}
+
+/* The call blown up over the whole window: feeds stacked, controls on the seam */
+
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  padding: 12px;
+  background: rgba(2, 6, 12, 0.94);
+}
+
+.expandedStack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.expandedTile {
+  composes: tile;
+  flex: 1;
+  min-height: 0;
+  cursor: default;
+}
+
+.expandedBar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(79, 227, 255, 0.4);
+  background: rgba(4, 10, 20, 0.92);
+}
+
+.tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileName {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 1px 8px;
+  background: rgba(4, 10, 20, 0.85);
+  color: #4fe3ff;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.callBar {
+  display: flex;
+  gap: 10px;
+  padding: 0 12px 12px;
+}
+
+.captions {
+  padding: 10px 16px;
+  border-top: 1px solid rgba(79, 227, 255, 0.2);
+  background: rgba(4, 10, 20, 0.9);
+  font-size: 13px;
+  color: #d8f4ff;
+}
+
+.captionInterim {
+  color: #5b8298;
+}
+
+.captionWho {
+  color: #ff8a2b;
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-right: 8px;
+}
+
+/* Phone */
+
+@media (max-width: 640px) {
+  .root {
+    height: 100dvh;
+  }
+
+  .telemetry {
+    gap: 10px;
+    padding: 8px 12px;
+    padding-top: calc(8px + env(safe-area-inset-top));
+  }
+
+  /* The instrument readings are decoration; the callsign and the two controls
+     are what a phone-width bar can actually hold. */
+  .reading {
+    display: none;
+  }
+
+  .callsign {
+    font-size: 13px;
+    letter-spacing: 3px;
+  }
+
+  .ghostButton {
+    padding: 8px 12px;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+
+  .skinMenu {
+    width: min(260px, calc(100vw - 24px));
+    max-height: 60dvh;
+    overflow-y: auto;
+  }
+
+  .rail,
+  .main {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .rail {
+    border-right: 0;
+  }
+
+  /* One pane at a time: the route already says which one. */
+  .gridRoom .rail,
+  .gridList .main {
+    display: none;
+  }
+
+  .railHead {
+    padding: 9px 12px;
+    letter-spacing: 2px;
+  }
+
+  .searchRow {
+    margin: 8px 10px;
+    padding: 0 10px;
+  }
+
+  .search {
+    /* Under 16px iOS zooms the page in on focus. */
+    font-size: 16px;
+    padding: 10px 0;
+  }
+
+  .row {
+    padding: 11px 12px;
+    gap: 10px;
+  }
+
+  .channelHead {
+    padding: 9px 12px;
+    gap: 10px;
+  }
+
+  /* Video and back become icon buttons so the channel name keeps its width. */
+  .ghostLabel {
+    display: none;
+  }
+
+  .channelHead .ghostButton {
+    padding: 9px 11px;
+  }
+
+  .channelName {
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+
+  .thread {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .msg {
+    max-width: 88%;
+  }
+
+  .msgBody {
+    padding: 10px 13px;
+    font-size: 15px;
+  }
+
+  .status {
+    gap: 12px;
+    padding: 6px 12px;
+  }
+
+  .composer {
+    gap: 8px;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .input {
+    font-size: 16px;
+    padding: 11px 12px;
+  }
+
+  .send {
+    padding: 0 16px;
+    letter-spacing: 2px;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    height: clamp(140px, 22dvh, 220px);
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .callBar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 8px 8px;
+  }
+
+  .authWrap {
+    /* Centred vertically the form jumps when the keyboard opens. */
+    align-items: start;
+    padding: 14px;
+    overflow-y: auto;
+  }
+
+  .authBody {
+    padding: 14px 14px 18px;
+  }
+
+  .tabs {
+    gap: 8px;
+  }
+
+  .inviteRow {
+    margin: 0 10px 8px;
+  }
+
+  /* "Anon channel, no signup" is wider than a 360px button, so it wraps
+     rather than being cut — the phrase is the whole pitch. */
+  .inviteButton {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.4;
+    padding: 10px 12px;
+  }
+
+  .orRule {
+    letter-spacing: 2px;
+  }
+}
+
+/* Every phone target is at least a comfortable finger. */
+@media (pointer: coarse) {
+  .ghostButton,
+  .row,
+  .send,
+  .skinOption {
+    min-height: 44px;
+  }
+}

@@ -1,0 +1,1392 @@
+/* Breeze — the 2003 desktop messenger: a real window on a wallpaper. */
+
+.desktop {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: Tahoma, 'Trebuchet MS', Verdana, Geneva, sans-serif;
+  font-size: 12px;
+  color: #16305e;
+  background:
+    radial-gradient(90% 130% at 30% 118%, #7fbe4a 0%, #4f9a2e 34%, rgba(47, 109, 30, 0) 70%),
+    radial-gradient(120% 80% at 50% 12%, #9fd3ff 0%, #4c93e2 42%, #1d5fae 78%);
+  overflow: hidden;
+}
+
+/*
+ * Where windows live. Relative, because a maximised window covers this box and
+ * nothing else — the taskbar below it stays put, the way XP does it.
+ *
+ * Flex, not grid with place-items: an auto-sized grid row cannot resolve the
+ * window's `height: min(880px, 100%)`, so the window kept its 880px and hung
+ * off the bottom of short viewports.
+ */
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.window {
+  width: min(1180px, 100%);
+  height: min(880px, 100%);
+  display: flex;
+  flex-direction: column;
+  border-radius: 9px 9px 6px 6px;
+  background: linear-gradient(#4a92ee, #1a63d6);
+  padding: 0 4px 4px;
+  box-shadow:
+    0 40px 90px rgba(3, 17, 44, 0.55),
+    0 8px 22px rgba(3, 17, 44, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.windowNarrow {
+  width: min(420px, 100%);
+  height: auto;
+}
+
+/* Maximised: the window takes the stage whole, padding and corners included. */
+.windowMax {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.windowMax .titleBar {
+  border-radius: 0;
+}
+
+.titleBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 6px 0 8px;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(
+    180deg,
+    #4c9bf6 0%,
+    #1f6fdf 8%,
+    #1358cb 46%,
+    #0b4cba 52%,
+    #2a7ee8 92%,
+    #7cb8f6 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.titleIcon {
+  width: 19px;
+  height: 19px;
+  border-radius: 4px;
+  background: linear-gradient(#fff6b0, #f2b418);
+  box-shadow:
+    inset 0 1px 0 #fffde3,
+    0 1px 2px rgba(0, 0, 0, 0.35);
+  display: grid;
+  place-items: center;
+}
+
+.titleIcon::after {
+  content: '';
+  width: 11px;
+  height: 8px;
+  border-radius: 3px 3px 3px 1px;
+  background: #1f6fdf;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.titleText {
+  flex: 1;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  letter-spacing: 0.2px;
+  text-shadow: 1px 1px 1px rgba(3, 26, 74, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.titleButtons {
+  display: flex;
+  gap: 3px;
+}
+
+.titleButton {
+  width: 24px;
+  height: 22px;
+  flex: none;
+  /* Without an explicit box the glyph sits on the text baseline and the three
+     controls look misaligned against each other. */
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: #fff;
+  font: inherit;
+  font-size: 11px;
+  font-weight: bold;
+  line-height: 1;
+  background: linear-gradient(#8fc4fb, #2c78e2 52%, #1a5fca);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.3),
+    0 1px 2px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.titleButton:hover:enabled {
+  filter: brightness(1.12);
+}
+
+/* A window with nothing to minimise into keeps its buttons — they are part of
+   the frame — but they do not pretend to be clickable. */
+.titleButton:disabled {
+  cursor: default;
+}
+
+/* Minimise draws its bar on the floor of the button, the way the original did. */
+.titleMinimise {
+  align-items: end;
+  padding-bottom: 5px;
+}
+
+.titleMaximise {
+  font-size: 10px;
+}
+
+.titleClose {
+  width: 27px;
+  font-size: 12px;
+  background: linear-gradient(#ff9a72, #e8451c 52%, #c02c0c);
+  text-shadow: 0 1px 1px rgba(90, 10, 0, 0.7);
+}
+
+.menuBar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 6px;
+  color: #10306a;
+  background: linear-gradient(#fdfdfe, #eaf1fb);
+  border-bottom: 1px solid #b9d0ee;
+}
+
+.menuItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+}
+
+.menuItem:hover,
+.menuItemOpen {
+  background: #cfe2fb;
+}
+
+.menuSpacer {
+  flex: 1;
+}
+
+.menuStatus {
+  padding-right: 4px;
+  color: #4a6b9c;
+}
+
+.menuHolder {
+  position: relative;
+}
+
+/*
+ * Fixed, not absolute: on a phone the menu bar is a horizontal scroller, and a
+ * scroll container clips whatever hangs out of it — an absolute drop-down would
+ * be trapped inside a 40px strip. SkinMenu measures the button and puts the
+ * menu at those viewport coordinates instead.
+ */
+.menu {
+  position: fixed;
+  z-index: 30;
+  min-width: 210px;
+  max-width: calc(100vw - 12px);
+  overflow-y: auto;
+  padding: 2px;
+  background: #fff;
+  border: 1px solid #7fa8dc;
+  box-shadow: 3px 3px 6px rgba(6, 30, 70, 0.35);
+}
+
+.menuOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuOption:hover {
+  background: linear-gradient(#5da4f7, #1a64d5);
+  color: #fff;
+}
+
+.menuCheck {
+  width: 12px;
+  font-weight: bold;
+}
+
+.swatch {
+  display: flex;
+  width: 22px;
+  height: 12px;
+  border: 1px solid #6d94c8;
+  overflow: hidden;
+  flex: none;
+}
+
+.swatch span {
+  flex: 1;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: linear-gradient(#dcebfc, #bcd8f7);
+  border-bottom: 1px solid #7fa8dc;
+}
+
+.sidebar {
+  width: 300px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid #1a63d6;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow:
+    inset 0 0 0 1px #a9cbf3,
+    0 2px 4px rgba(10, 40, 90, 0.28);
+  overflow: hidden;
+}
+
+.panelHead {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 9px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 1px rgba(4, 28, 78, 0.8);
+  background: linear-gradient(#5ea5f7, #1c68d8 55%, #0f52c0);
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px;
+  padding: 0 6px;
+  background: #fff;
+  border: 1px solid #8ea9c6;
+  box-shadow: inset 1px 1px 2px rgba(80, 110, 150, 0.3);
+  color: #4a6b9c;
+}
+
+.searchRow:focus-within {
+  border-color: #1a63d6;
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  outline: 0;
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2px 4px 6px;
+  background: linear-gradient(#ffffff, #f4f9ff);
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  font-weight: bold;
+}
+
+.groupIcon {
+  width: 17px;
+  height: 14px;
+  border-radius: 2px 3px 2px 2px;
+  background: linear-gradient(#ffe692, #eaa717);
+  box-shadow:
+    inset 0 1px 0 #fff8cf,
+    0 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.contact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 6px 4px 26px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.contact:hover {
+  background: #d7e8fd;
+}
+
+.contactActive,
+.contactActive:hover {
+  background: linear-gradient(#5da4f7, #1a64d5);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.dot {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #b6f7a4, #37a527 60%, #1d6c14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.dotIdle {
+  background: radial-gradient(circle at 34% 30%, #ffd6ec, #e9569f 62%, #ab2a6c);
+}
+
+.contactName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contactHint {
+  color: #5a7ba8;
+}
+
+.contactActive .contactHint {
+  color: #dceafb;
+}
+
+.note {
+  padding: 6px 10px;
+  color: #5a7ba8;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.toolbar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 6px;
+  border: 1px solid #7fa8dc;
+  border-radius: 4px;
+  background: linear-gradient(#fdfdfe, #dceafb);
+}
+
+.tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid #79a9e2;
+  border-radius: 3px;
+  background: linear-gradient(#ffffff, #d7e8fd);
+  color: #16305e;
+  cursor: pointer;
+}
+
+.tool:hover {
+  background: linear-gradient(#ffffff, #bcd8f7);
+}
+
+.toolDanger {
+  border-color: #d07a5c;
+  background: linear-gradient(#fff0ea, #ffc4ad);
+}
+
+.conversation {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.transcript {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fff;
+  border: 0;
+  border-radius: 2px;
+  box-shadow:
+    inset 1px 1px 0 #8ea9c6,
+    inset -1px -1px 0 #fff,
+    inset 2px 2px 3px rgba(80, 110, 150, 0.28);
+  font-size: 14px;
+  color: #14243d;
+  line-height: 1.45;
+}
+
+.systemLine {
+  text-align: center;
+  font-size: 11px;
+  color: #7b8ca6;
+}
+
+/* A call announcement: not something anybody said, so not a bubble either. */
+.callNotice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0;
+  padding: 7px 11px;
+  border: 1px solid #7fa8dc;
+  border-radius: 4px;
+  background: linear-gradient(#fdfdfe, #dceafb);
+  font-size: 12px;
+  color: #16305e;
+}
+
+.callNoticeText {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.message {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.messageOwn {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.messageDot {
+  width: 13px;
+  height: 13px;
+  margin-top: 5px;
+  flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ffd6ec, #e9569f 62%, #ab2a6c);
+}
+
+.messageOwn .messageDot {
+  background: radial-gradient(circle at 34% 30%, #cfe6ff, #2f7ff0 62%, #12459f);
+}
+
+.says {
+  font-weight: bold;
+  color: #b32c74;
+  font-size: 12px;
+}
+
+.messageOwn .says {
+  color: #1a5fc8;
+}
+
+.bubble {
+  display: inline-block;
+  margin-top: 3px;
+  padding: 7px 11px;
+  border-radius: 10px 10px 10px 2px;
+  background: linear-gradient(#ffffff, #ffeaf5);
+  box-shadow:
+    inset 0 0 0 1px #f0b8d6,
+    0 1px 2px rgba(60, 20, 45, 0.14);
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.messageOwn .bubble {
+  border-radius: 10px 10px 2px 10px;
+  background: linear-gradient(#ffffff, #e6f1ff);
+  box-shadow:
+    inset 0 0 0 1px #a9cbf3,
+    0 1px 2px rgba(20, 40, 80, 0.14);
+}
+
+.time {
+  margin-left: 6px;
+  font-size: 10px;
+  color: #8ba0bd;
+}
+
+.typing {
+  height: 16px;
+  padding: 0 4px;
+  font-size: 11px;
+  color: #7b8ca6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.typingDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #37a527;
+  box-shadow: 0 0 4px #7ce06b;
+}
+
+.composer {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid #8ea9c6;
+  background: #fff;
+  box-shadow: inset 1px 1px 2px rgba(80, 110, 150, 0.3);
+  outline: 0;
+  font-size: 13px;
+  resize: none;
+}
+
+.input:focus {
+  border-color: #1a63d6;
+}
+
+.send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(6, 30, 80, 0.6);
+  background: linear-gradient(#7cb8f6, #1f6fdf 52%, #0f4aab);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.28),
+    0 3px 5px rgba(10, 40, 90, 0.4),
+    0 0 0 1px #0f4aab;
+  cursor: pointer;
+}
+
+.send:hover {
+  filter: brightness(1.08);
+}
+
+.send:disabled {
+  filter: grayscale(0.7) brightness(1.05);
+  cursor: default;
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 22px;
+  padding: 0 8px;
+  font-size: 11px;
+  color: #10306a;
+  background: linear-gradient(#eaf1fb, #cfe0f5);
+  border-radius: 0 0 4px 4px;
+}
+
+.statusChip {
+  padding: 0 6px;
+  border: 1px solid #9dbde4;
+  background: #fff;
+}
+
+.empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: #4a6b9c;
+  background: #fff;
+  box-shadow:
+    inset 1px 1px 0 #8ea9c6,
+    inset 2px 2px 3px rgba(80, 110, 150, 0.28);
+}
+
+/* The bar along the bottom: start, the open window, the clock. */
+
+.taskbar {
+  flex: none;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 12px;
+  background: linear-gradient(
+    180deg,
+    #4e97ee 0%,
+    #2a75dd 9%,
+    #1a5fc9 46%,
+    #1457bf 88%,
+    #3f86e6 100%
+  );
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 -2px 8px rgba(4, 20, 52, 0.35);
+}
+
+.startHolder {
+  position: relative;
+  height: 100%;
+}
+
+.start {
+  height: 100%;
+  padding: 0 30px 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 0 14px 14px 0;
+  background: linear-gradient(
+    180deg,
+    #7fce62 0%,
+    #45a52f 10%,
+    #2b7d1c 52%,
+    #226d16 88%,
+    #4fae35 100%
+  );
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.55),
+    inset -2px 0 4px rgba(0, 0, 0, 0.2),
+    2px 0 6px rgba(4, 30, 10, 0.35);
+  cursor: pointer;
+}
+
+.start:hover,
+.startOpen {
+  filter: brightness(1.08);
+}
+
+.startOrb {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: linear-gradient(#eaffdf, #b7e79a);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.startOrb::after {
+  content: '';
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #fff, #2b7d1c);
+}
+
+.startLabel {
+  font-family: inherit;
+  font-size: 21px;
+  font-style: italic;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 2px 2px rgba(6, 44, 10, 0.85);
+}
+
+.startMenu {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  z-index: 40;
+  width: 260px;
+  max-height: min(420px, 70vh);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #0b4cba;
+  border-radius: 6px 6px 0 0;
+  background: #fff;
+  box-shadow: 0 -6px 18px rgba(3, 17, 44, 0.45);
+  overflow: hidden;
+}
+
+.startHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 1px rgba(3, 26, 74, 0.8);
+  background: linear-gradient(#5ea5f7, #1c68d8 55%, #0f52c0);
+}
+
+.startAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: linear-gradient(#fff6b0, #f2b418);
+  box-shadow: inset 0 1px 0 #fffde3;
+}
+
+.startList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px;
+  background: #fff;
+}
+
+.startGroup {
+  margin: 2px 0 4px;
+  padding: 0 6px;
+  font-size: 11px;
+  color: #4a6b9c;
+}
+
+.startItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.startItem:hover {
+  background: linear-gradient(#5da4f7, #1a64d5);
+  color: #fff;
+}
+
+.startMark {
+  margin-left: auto;
+  font-weight: bold;
+}
+
+.startFoot {
+  flex: none;
+  padding: 4px;
+  background: linear-gradient(#dcebfc, #bcd8f7);
+  border-top: 1px solid #7fa8dc;
+}
+
+.taskbarRule {
+  width: 1px;
+  height: 34px;
+  background: linear-gradient(
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.1)
+  );
+}
+
+.tasks {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+}
+
+.task {
+  max-width: 240px;
+  height: 34px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  color: #eaf2ff;
+  background: linear-gradient(#3f88e2, #1a5abd 52%, #124b98);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}
+
+/* The window you are looking at: lit up and pressed in, as XP drew it. */
+.taskActive {
+  color: #fff;
+  background: linear-gradient(#5fa6f4, #1d63cf 52%, #14509f);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.taskIcon {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  border-radius: 3px;
+  background: linear-gradient(#fff6b0, #f2b418);
+}
+
+.taskLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tray {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 4px;
+  background: linear-gradient(#2f74d4, #144fa8);
+  box-shadow:
+    inset 1px 1px 3px rgba(4, 20, 52, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.trayLamp {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #fffbe0, #ffd83d 60%, #cf8c04);
+}
+
+.trayCard {
+  width: 14px;
+  height: 12px;
+  border-radius: 2px;
+  background: linear-gradient(#dff0ff, #79aee0);
+}
+
+.trayClock {
+  letter-spacing: 0.3px;
+}
+
+/* The question box that closing the window raises. */
+
+.veil {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(6, 26, 60, 0.35);
+}
+
+.windowDialog {
+  width: min(360px, calc(100% - 24px));
+  height: auto;
+}
+
+/* A message box has nowhere to go: closing it is the only frame control it gets. */
+.windowDialog .titleMinimise,
+.windowDialog .titleMaximise {
+  display: none;
+}
+
+.dialogBody {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 18px 16px;
+  background: linear-gradient(#fdfdfe, #eaf1fb);
+}
+
+.dialogIcon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(6, 30, 80, 0.6);
+  background: linear-gradient(#7cb8f6, #1f6fdf 60%, #0f4aab);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.dialogText {
+  margin: 0;
+  font-size: 13px;
+}
+
+.dialogButtons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 10px 12px;
+  background: linear-gradient(#eaf1fb, #cfe0f5);
+  border-radius: 0 0 4px 4px;
+}
+
+.dialogButtons .send,
+.dialogButtons .tool {
+  min-width: 84px;
+  height: 26px;
+  justify-content: center;
+}
+
+/* Sign-on window */
+
+.signOn {
+  padding: 22px 26px 26px;
+  background: linear-gradient(#f6faff, #dfebfb);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.signOnMark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #12459f;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #9dbde4;
+}
+
+.tab {
+  padding: 5px 14px;
+  border: 1px solid #9dbde4;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(#eef5ff, #cfe2fb);
+  cursor: pointer;
+}
+
+.tabActive {
+  background: #fff;
+  font-weight: bold;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.label {
+  font-size: 11px;
+  color: #3b5c8f;
+}
+
+.error {
+  padding: 5px 8px;
+  border: 1px solid #d07a5c;
+  background: #fff0ea;
+  color: #a3300f;
+}
+
+/* Anonymous invite link */
+
+.inviteRow {
+  display: flex;
+  margin: 0 6px 6px;
+}
+
+.inviteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #79a9e2;
+  border-radius: 3px;
+  background: linear-gradient(#ffffff, #d7e8fd);
+  color: #16305e;
+  font: inherit;
+  cursor: pointer;
+}
+
+.inviteButton:hover {
+  background: linear-gradient(#ffffff, #bcd8f7);
+}
+
+.inviteButton:disabled {
+  color: #7f95b5;
+  background: #eaf0f8;
+  cursor: default;
+}
+
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #5a7ba8;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.orRule::before,
+.orRule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #b6cbe6;
+}
+
+.callStage {
+  height: 40%;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid #1a63d6;
+  border-radius: 6px;
+  background: #06162e;
+  overflow: hidden;
+  position: relative;
+}
+
+.tiles {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 4px;
+  padding: 4px;
+}
+
+.tile {
+  position: relative;
+  background: #0b2444;
+  border: 1px solid #2f7ff0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileName {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+  color: #fff;
+  background: rgba(6, 22, 46, 0.75);
+}
+
+/* The call blown up over the whole window: feeds stacked, controls on the seam */
+
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  padding: 10px;
+  background: rgba(3, 14, 32, 0.94);
+}
+
+.expandedStack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.expandedTile {
+  composes: tile;
+  flex: 1;
+  min-height: 0;
+  cursor: default;
+}
+
+.expandedBar {
+  composes: toolbar;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+}
+
+.captions {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  padding: 6px 10px;
+  background: rgba(6, 22, 46, 0.8);
+  border: 1px solid #2f7ff0;
+  color: #eaf3ff;
+  font-size: 13px;
+}
+
+.captionInterim {
+  opacity: 0.65;
+  font-style: italic;
+}
+
+.captionWho {
+  font-weight: bold;
+  color: #9fd3ff;
+  margin-right: 6px;
+}
+
+/*
+ * Phone. A 2003 desktop window has nowhere to float on a 390px screen, so it
+ * maximises: no wallpaper margin, no rounded frame, and one pane at a time —
+ * the buddy list, or the conversation with its "back" button.
+ */
+@media (max-width: 640px) {
+  .desktop {
+    height: 100dvh;
+  }
+
+  .stage {
+    padding: 0;
+  }
+
+  /* A phone has no desktop to minimise into, and the bar would eat a tenth of
+     the screen — the start menu's job is done by the menu bar up top. */
+  .taskbar {
+    display: none;
+  }
+
+  .window {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .titleBar {
+    border-radius: 0;
+    height: 38px;
+    padding-left: 10px;
+  }
+
+  .titleText {
+    font-size: 13px;
+  }
+
+  /* Minimise/maximise mean nothing here; closing stays. */
+  .titleMinimise,
+  .titleMaximise {
+    display: none;
+  }
+
+  .menuBar {
+    height: 40px;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .menuBar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .menuItem {
+    min-height: 34px;
+    padding: 2px 10px;
+    white-space: nowrap;
+  }
+
+  .body {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .sidebar,
+  .main {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* One pane at a time: the route already says which one. */
+  .bodyRoom .sidebar,
+  .bodyList .main {
+    display: none;
+  }
+
+  .panel {
+    border-width: 2px;
+  }
+
+  .contact {
+    min-height: 46px;
+    padding: 8px 8px 8px 22px;
+    font-size: 14px;
+  }
+
+  .search {
+    font-size: 16px;
+    padding: 8px 0;
+  }
+
+  .toolbar {
+    padding: 5px;
+    gap: 5px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tool {
+    min-height: 40px;
+    white-space: nowrap;
+  }
+
+  .transcript {
+    padding: 10px;
+    font-size: 15px;
+  }
+
+  .bubble {
+    max-width: 82vw;
+  }
+
+  .composer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .input {
+    /* Under 16px iOS zooms the page in on focus. */
+    font-size: 16px;
+    padding: 11px 10px;
+  }
+
+  .send {
+    padding: 0 16px;
+    min-height: 44px;
+  }
+
+  .statusBar {
+    padding-bottom: env(safe-area-inset-bottom);
+    height: auto;
+    min-height: 24px;
+  }
+
+  .signOn {
+    padding: 18px;
+  }
+
+  .windowNarrow {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* "Анонімний чат без реєстрації" is wider than a 360px button, so it wraps
+     rather than being cut — the sentence is the whole pitch. */
+  .inviteButton {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.3;
+    padding: 9px 10px;
+  }
+
+  .orRule {
+    font-size: 10px;
+  }
+}
+
+@media (pointer: coarse) {
+  .tool,
+  .send,
+  .menuItem,
+  .contact,
+  .menuOption,
+  .inviteButton,
+  .tab {
+    min-height: 44px;
+  }
+}

@@ -1,0 +1,611 @@
+/* Terminal — a text-mode BBS: one column, 80 columns wide in spirit. */
+
+.root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(120% 90% at 50% 42%, #0b1eb0 0%, #000f7a 55%, #000042 100%);
+  color: #b9c9ff;
+  font-family: 'IBM Plex Mono', 'DejaVu Sans Mono', Menlo, Consolas, monospace;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow: hidden;
+  position: relative;
+}
+
+.scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: repeating-linear-gradient(rgba(0, 0, 0, 0.16) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 12px;
+  background: #00a8a8;
+  color: #002020;
+  font-weight: 700;
+  flex: none;
+}
+
+.topSpacer {
+  flex: 1;
+}
+
+.screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  overflow: hidden;
+}
+
+.heading {
+  color: #ffff55;
+  font-weight: 700;
+}
+
+.rule {
+  color: #00a8a8;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.line {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+/* A call announcement: the client says it, not a user, so it gets its own row */
+.callNotice {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 2px 6px;
+  background: #000f7a;
+  color: #55ffff;
+}
+
+.callNoticeText {
+  color: #ffff55;
+  font-weight: 700;
+}
+
+.stamp {
+  color: #ffff55;
+  font-weight: 700;
+  flex: none;
+}
+
+.nick {
+  color: #55ff55;
+  font-weight: 700;
+  flex: none;
+}
+
+.nickOwn {
+  color: #55ffff;
+}
+
+.text {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.system {
+  color: #6f7fc8;
+}
+
+.index {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.entry {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  width: 100%;
+  padding: 2px 6px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.entry:hover {
+  background: #00a8a8;
+  color: #002020;
+}
+
+.entryActive {
+  background: #001f9e;
+  color: #55ffff;
+}
+
+.entryNum {
+  color: #ffff55;
+  font-weight: 700;
+  width: 3ch;
+  flex: none;
+}
+
+.entryName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entryMeta {
+  color: #6f7fc8;
+}
+
+.prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #000f7a;
+  border-top: 2px solid #00a8a8;
+  flex: none;
+}
+
+.promptSign {
+  color: #55ff55;
+  font-weight: 700;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: #eaf0ff;
+  font: inherit;
+  outline: 0;
+  caret-color: #55ffff;
+}
+
+.input::placeholder {
+  color: #4f5ea8;
+}
+
+.keys {
+  display: flex;
+  gap: 1px;
+  background: #002020;
+  flex: none;
+}
+
+.key {
+  padding: 3px 10px;
+  border: 0;
+  background: #00a8a8;
+  color: #002020;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.key:hover {
+  background: #55ffff;
+}
+
+.keyLabel {
+  color: #b9c9ff;
+  background: #000f7a;
+  padding: 3px 6px;
+}
+
+.keyFill {
+  flex: 1;
+  background: #000f7a;
+}
+
+/* Centred DOS dialog, used for the skin list and the login form */
+
+.dialogWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 60, 0.6);
+}
+
+.dialog {
+  width: min(520px, calc(100% - 40px));
+  background: #001f9e;
+  border: 2px solid #55ffff;
+  box-shadow: 8px 8px 0 rgba(0, 0, 40, 0.6);
+}
+
+.dialogTitle {
+  padding: 3px 10px;
+  background: #55ffff;
+  color: #002020;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.dialogBody {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.option {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 3px 8px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: #00a8a8;
+  color: #002020;
+}
+
+.optionActive {
+  color: #ffff55;
+  font-weight: 700;
+}
+
+.swatch {
+  display: flex;
+  width: 24px;
+  height: 12px;
+  border: 1px solid #b9c9ff;
+  flex: none;
+}
+
+.swatch span {
+  flex: 1;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fieldLabel {
+  width: 14ch;
+  flex: none;
+  color: #ffff55;
+}
+
+.fieldInput {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 6px;
+  border: 0;
+  background: #000f7a;
+  color: #eaf0ff;
+  font: inherit;
+  outline: 0;
+}
+
+.fieldInput:focus {
+  background: #000060;
+  box-shadow: inset 0 0 0 1px #55ffff;
+}
+
+.tabs {
+  display: flex;
+  gap: 12px;
+}
+
+.tab {
+  border: 0;
+  background: none;
+  color: #b9c9ff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tabActive {
+  color: #ffff55;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.error {
+  color: #ff5555;
+  font-weight: 700;
+}
+
+.action {
+  align-self: flex-start;
+  padding: 3px 14px;
+  border: 0;
+  background: #00a8a8;
+  color: #002020;
+  font: inherit;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.action:hover {
+  background: #55ffff;
+}
+
+.action:disabled {
+  background: #4f5ea8;
+  color: #001f9e;
+  cursor: default;
+}
+
+/* Call */
+
+.call {
+  border-top: 2px solid #00a8a8;
+  border-bottom: 2px solid #00a8a8;
+  background: #000042;
+  flex: none;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2px;
+  padding: 2px;
+  /* A definite height: a camera tile sizes itself from the video stream, and
+     720p would otherwise push the thread and the composer off the screen. */
+  height: clamp(170px, 26vh, 280px);
+}
+
+.tile {
+  position: relative;
+  border: 1px solid #00a8a8;
+  background: #00003c;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* The call blown up over the whole screen: feeds stacked, keys on the seam */
+
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  padding: 4px;
+  background: #000042;
+}
+
+.expandedStack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.expandedTile {
+  composes: tile;
+  flex: 1;
+  min-height: 0;
+  cursor: default;
+}
+
+.expandedBar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: flex;
+  gap: 1px;
+  background: #002020;
+  border: 1px solid #00a8a8;
+}
+
+.tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileName {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 0 6px;
+  background: #00a8a8;
+  color: #002020;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.callBar {
+  display: flex;
+  gap: 1px;
+  background: #002020;
+}
+
+.captionLine {
+  padding: 2px 14px;
+  background: #000f7a;
+  color: #55ffff;
+}
+
+.captionInterim {
+  color: #6f7fc8;
+}
+
+/* Phone */
+
+@media (max-width: 640px) {
+  /* A narrower character cell buys back the columns a phone does not have. */
+  .root {
+    height: 100dvh;
+    font-size: 13px;
+  }
+
+  .topBar {
+    gap: 8px;
+    padding: 4px 8px;
+    padding-top: calc(4px + env(safe-area-inset-top));
+    font-size: 12px;
+  }
+
+  /* Node number is flavour; the user line is not. */
+  .topNode {
+    display: none;
+  }
+
+  .screen {
+    padding: 8px 10px;
+  }
+
+  /* The login form is the one screen with no flexible pane of its own, so on a
+     short phone viewport it has to scroll. */
+  .screenAuth {
+    overflow-y: auto;
+  }
+
+  /* Stamp and nick stay on one line, the message drops under them: a 360px
+     column split three ways leaves the text about ten characters wide. */
+  .line {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .text {
+    flex: 1 0 100%;
+  }
+
+  .entry {
+    padding: 5px 4px;
+    gap: 8px;
+  }
+
+  .entryMeta {
+    display: none;
+  }
+
+  .prompt {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .input,
+  .fieldInput {
+    /* Under 16px iOS zooms the page in on focus. */
+    font-size: 16px;
+  }
+
+  /* The strip is eight cells wide; on a phone it scrolls instead of clipping. */
+  .keys {
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .keys::-webkit-scrollbar {
+    display: none;
+  }
+
+  .key,
+  .keyLabel {
+    flex: none;
+    padding: 6px 8px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  /* A filler that grows would defeat the strip's horizontal scroll. */
+  .keys > .keyFill {
+    display: none;
+  }
+
+  .dialog {
+    width: calc(100% - 24px);
+    max-height: 76dvh;
+    overflow-y: auto;
+  }
+
+  .dialogBody {
+    padding: 10px;
+  }
+
+  /* A 14ch label plus a field does not fit; the label takes its own line. */
+  .field {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .fieldLabel {
+    width: auto;
+  }
+
+  .fieldInput {
+    padding: 6px 8px;
+  }
+
+  .option {
+    padding: 6px 8px;
+  }
+
+  .action {
+    padding: 8px 16px;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    height: clamp(140px, 22dvh, 220px);
+  }
+
+  .callBar {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .callBar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Every phone target is at least a comfortable finger. */
+@media (pointer: coarse) {
+  .key,
+  .entry,
+  .option,
+  .tab,
+  .action {
+    min-height: 44px;
+  }
+}

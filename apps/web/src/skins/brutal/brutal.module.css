@@ -1,0 +1,1018 @@
+/* Brutal — 5px black borders, hard shadows, no radius, everything shouts. */
+
+.root {
+  height: 100%;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #e8e4d8;
+  color: #000;
+  font-family: 'Space Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  overflow: hidden;
+}
+
+.bar {
+  display: flex;
+  align-items: stretch;
+  border: 5px solid #000;
+  background: #d6ff2e;
+  box-shadow: 8px 8px 0 #000;
+  flex: none;
+}
+
+.brand {
+  padding: 14px 20px;
+  border-right: 5px solid #000;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+}
+
+.barItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  border: 0;
+  border-right: 3px solid #000;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.barItem:hover,
+.barItemOpen {
+  background: #000;
+  color: #d6ff2e;
+}
+
+.barTail {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #000;
+  color: #d6ff2e;
+}
+
+.skinHolder {
+  position: relative;
+  display: flex;
+}
+
+.skinMenu {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  z-index: 30;
+  width: 280px;
+  border: 5px solid #000;
+  background: #fff;
+  box-shadow: 8px 8px 0 #000;
+}
+
+.skinOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 3px solid #000;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+
+.skinOption:last-child {
+  border-bottom: 0;
+}
+
+.skinOption:hover {
+  background: #d6ff2e;
+}
+
+.skinOptionActive {
+  background: #39ff6a;
+}
+
+.swatch {
+  display: flex;
+  width: 26px;
+  height: 14px;
+  border: 3px solid #000;
+  flex: none;
+}
+
+.swatch span {
+  flex: 1;
+}
+
+.columns {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 16px;
+}
+
+.side {
+  width: 340px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 5px solid #000;
+  background: #fff;
+  box-shadow: 8px 8px 0 #000;
+}
+
+.blockHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 5px solid #000;
+  background: #000;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-bottom: 5px solid #000;
+  background: #fff;
+}
+
+.searchRow:focus-within {
+  background: #d6ff2e;
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  outline: 0;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.groupLabel {
+  padding: 8px 16px;
+  background: #d6ff2e;
+  border-bottom: 3px solid #000;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 16px;
+  border: 0;
+  border-bottom: 3px solid #000;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  text-decoration: none;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: #d6ff2e;
+}
+
+.rowActive,
+.rowActive:hover {
+  background: #39ff6a;
+  font-weight: 700;
+}
+
+.mark {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  background: #000;
+}
+
+.markHollow {
+  background: none;
+  border: 3px solid #000;
+}
+
+.rowName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  padding: 3px 8px;
+  background: #000;
+  color: #d6ff2e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.note {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #6b685c;
+  text-transform: uppercase;
+}
+
+.sideButtons {
+  display: flex;
+  gap: 12px;
+  flex: none;
+}
+
+.chunky {
+  flex: 1;
+  padding: 14px 0;
+  text-align: center;
+  border: 5px solid #000;
+  background: #d6ff2e;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 6px 6px 0 #000;
+  cursor: pointer;
+}
+
+.chunky:hover {
+  background: #000;
+  color: #d6ff2e;
+}
+
+.chunky:active {
+  box-shadow: 0 0 0 #000;
+  transform: translate(6px, 6px);
+}
+
+.chunkyPlain {
+  background: #fff;
+}
+
+.chunkyPlain:hover {
+  background: #000;
+  color: #fff;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+
+.peerHead {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 5px solid #000;
+  background: #39ff6a;
+  flex: none;
+}
+
+.peerMark {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 4px solid #000;
+  background: #000;
+  color: #39ff6a;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.peerName {
+  display: block;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+
+.peerMeta {
+  display: block;
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  border-bottom: 5px solid #000;
+  flex: none;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 20px;
+  border: 0;
+  border-right: 4px solid #000;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.action:hover {
+  background: #000;
+  color: #fff;
+}
+
+.actionOn {
+  background: #d6ff2e;
+}
+
+.actionDanger {
+  background: #ff2e2e;
+  color: #fff;
+}
+
+.thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #e8e4d8;
+}
+
+/* A call announcement: not something anybody said, so not a message either. */
+.callNotice {
+  align-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border: 4px solid #000;
+  background: #d6ff2e;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.callNoticeText {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.callNoticeJoin {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 0;
+  background: #000;
+  color: #d6ff2e;
+  font: inherit;
+  cursor: pointer;
+}
+
+.callNoticeJoin:hover {
+  background: #fff;
+  color: #000;
+}
+
+.msg {
+  max-width: 72%;
+}
+
+.msgOwn {
+  align-self: flex-end;
+}
+
+.msgWho {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.msgBody {
+  padding: 11px 14px;
+  border: 4px solid #000;
+  background: #fff;
+  font-size: 15px;
+  line-height: 1.45;
+  box-shadow: 5px 5px 0 #000;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.msgOwn .msgBody {
+  background: #d6ff2e;
+}
+
+.status {
+  padding: 6px 18px;
+  border-top: 5px solid #000;
+  background: #000;
+  color: #d6ff2e;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  flex: none;
+}
+
+.composer {
+  display: flex;
+  border-top: 5px solid #000;
+  flex: none;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 0;
+  background: #fff;
+  font: inherit;
+  font-size: 15px;
+  outline: 0;
+}
+
+.input:focus {
+  background: #fdffe8;
+}
+
+.send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 24px;
+  border: 0;
+  border-left: 5px solid #000;
+  background: #d6ff2e;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.send:hover {
+  background: #000;
+  color: #d6ff2e;
+}
+
+.send:disabled {
+  background: #c9c5b8;
+  color: #6b685c;
+  cursor: default;
+}
+
+.empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #6b685c;
+}
+
+/* Auth */
+
+.authWrap {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+
+.authBox {
+  width: min(440px, 100%);
+}
+
+.authBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tabs {
+  display: flex;
+  border: 5px solid #000;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 0;
+  border: 0;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tab + .tab {
+  border-left: 5px solid #000;
+}
+
+.tabActive {
+  background: #000;
+  color: #d6ff2e;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.fieldInput {
+  padding: 12px 14px;
+  border: 4px solid #000;
+  background: #fff;
+  font: inherit;
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+  outline: 0;
+}
+
+.fieldInput:focus {
+  background: #d6ff2e;
+}
+
+.error {
+  padding: 12px 14px;
+  border: 4px solid #000;
+  background: #ff2e2e;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Anonymous invite link */
+
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.orRule::before,
+.orRule::after {
+  content: '';
+  flex: 1;
+  height: 4px;
+  background: #000;
+}
+
+/* Call */
+
+.call {
+  border-bottom: 5px solid #000;
+  background: #000;
+  flex: none;
+  position: relative;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 5px;
+  padding: 5px;
+  /* A definite height: a camera tile sizes itself from the video stream, and
+     720p would otherwise push the thread and the composer off the screen. */
+  height: clamp(170px, 26vh, 280px);
+}
+
+.tile {
+  position: relative;
+  border: 4px solid #d6ff2e;
+  background: #111;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* The call blown up over the whole window: feeds stacked, controls on the seam */
+
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  padding: 10px;
+  background: #000;
+}
+
+.expandedStack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.expandedTile {
+  composes: tile;
+  flex: 1;
+  min-height: 0;
+  cursor: default;
+}
+
+.expandedBar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: flex;
+  border: 5px solid #d6ff2e;
+  background: #000;
+}
+
+.expandedBar .callButton {
+  padding: 12px 18px;
+}
+
+.tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tileName {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 4px 8px;
+  background: #d6ff2e;
+  color: #000;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.callBar {
+  display: flex;
+  border-top: 5px solid #d6ff2e;
+}
+
+.callButton {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 0;
+  border: 0;
+  border-right: 4px solid #d6ff2e;
+  background: #000;
+  color: #d6ff2e;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.callButton:last-child {
+  border-right: 0;
+}
+
+.callButton:hover {
+  background: #d6ff2e;
+  color: #000;
+}
+
+.captions {
+  padding: 10px 14px;
+  border-top: 5px solid #d6ff2e;
+  background: #000;
+  color: #fff;
+  font-size: 13px;
+}
+
+.captionsInterim {
+  color: #8a8778;
+}
+
+.captionsWho {
+  color: #d6ff2e;
+  font-weight: 700;
+  margin-right: 8px;
+  text-transform: uppercase;
+}
+
+/* Phone */
+
+@media (max-width: 640px) {
+  .root {
+    height: 100dvh;
+    /* The hard shadows fall down and to the right; the padding is what keeps
+       them from being clipped by the root's own overflow. */
+    padding: 10px 14px calc(14px + env(safe-area-inset-bottom)) 10px;
+    padding-top: calc(10px + env(safe-area-inset-top));
+    gap: 12px;
+  }
+
+  /* The bar is four items wide on a desktop; on a phone the brand takes its
+     own line and the rest wraps under it. */
+  .bar {
+    flex-wrap: wrap;
+    border-width: 4px;
+    box-shadow: 5px 5px 0 #000;
+  }
+
+  .brand {
+    width: 100%;
+    padding: 10px 12px;
+    border-right: 0;
+    border-bottom: 4px solid #000;
+    font-size: 20px;
+  }
+
+  .barItem {
+    padding: 11px 12px;
+    font-size: 11px;
+    border-right-width: 2px;
+  }
+
+  /* A decorative no-op key; the phone bar has no room for it. */
+  .barItemExtra {
+    display: none;
+  }
+
+  .barTail {
+    padding: 11px 12px;
+    font-size: 11px;
+  }
+
+  .skinMenu {
+    width: min(280px, calc(100vw - 28px));
+    max-height: 60dvh;
+    overflow-y: auto;
+    border-width: 4px;
+    box-shadow: 5px 5px 0 #000;
+  }
+
+  .columns {
+    gap: 12px;
+  }
+
+  .side,
+  .main {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* One column at a time: the route already says which one. */
+  .columnsRoom .side,
+  .columnsList .main {
+    display: none;
+  }
+
+  .block {
+    border-width: 4px;
+    box-shadow: 5px 5px 0 #000;
+  }
+
+  .blockHead {
+    padding: 10px 12px;
+    border-bottom-width: 4px;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  .searchRow {
+    padding: 0 12px;
+    border-bottom-width: 4px;
+  }
+
+  .search {
+    /* Under 16px iOS zooms the page in on focus. */
+    font-size: 16px;
+    padding: 12px 0;
+  }
+
+  .row {
+    padding: 13px 12px;
+    font-size: 14px;
+  }
+
+  .sideButtons {
+    gap: 10px;
+  }
+
+  .chunky {
+    padding: 12px 0;
+    font-size: 12px;
+    border-width: 4px;
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .chunky:active {
+    transform: translate(4px, 4px);
+  }
+
+  .peerHead {
+    padding: 10px 12px;
+    gap: 10px;
+    border-bottom-width: 4px;
+  }
+
+  .peerMark {
+    width: 38px;
+    height: 38px;
+    font-size: 13px;
+  }
+
+  .peerName {
+    font-size: 16px;
+  }
+
+  .actions {
+    border-bottom-width: 4px;
+  }
+
+  .action {
+    flex: 1;
+    justify-content: center;
+    padding: 12px 8px;
+    font-size: 11px;
+    letter-spacing: 0;
+    border-right-width: 3px;
+  }
+
+  .action:last-child {
+    border-right: 0;
+  }
+
+  .thread {
+    padding: 12px;
+  }
+
+  .msg {
+    max-width: 88%;
+  }
+
+  .msgBody {
+    padding: 10px 12px;
+    border-width: 3px;
+    box-shadow: 4px 4px 0 #000;
+  }
+
+  .status {
+    padding: 6px 12px;
+    border-top-width: 4px;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+
+  .composer {
+    border-top-width: 4px;
+  }
+
+  .input {
+    padding: 13px 12px;
+    font-size: 16px;
+  }
+
+  .send {
+    padding: 0 16px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-left-width: 4px;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    height: clamp(140px, 22dvh, 220px);
+  }
+
+  .callButton {
+    padding: 12px 0;
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+
+  .authBody {
+    padding: 14px;
+  }
+
+  .fieldInput {
+    font-size: 16px;
+    border-width: 3px;
+  }
+
+  .tabs {
+    border-width: 4px;
+  }
+
+  .tab + .tab {
+    border-left-width: 4px;
+  }
+
+  /* Centred vertically the form jumps when the keyboard opens; pin it up top. */
+  .authWrap {
+    align-items: start;
+    overflow-y: auto;
+  }
+
+  /* The sideButtons row is two chunky blocks wide; on a phone they stack so
+     neither label has to shrink out of the skin's shouting register. */
+  .sideButtons {
+    flex-direction: column;
+  }
+
+  .orRule {
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  .orRule::before,
+  .orRule::after {
+    height: 3px;
+  }
+}
+
+/* Every phone target is at least a comfortable finger. */
+@media (pointer: coarse) {
+  .barItem,
+  .row,
+  .chunky,
+  .action,
+  .send,
+  .tab,
+  .callButton,
+  .skinOption {
+    min-height: 44px;
+  }
+}

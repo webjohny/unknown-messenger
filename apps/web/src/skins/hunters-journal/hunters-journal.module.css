@@ -1,0 +1,1577 @@
+/*
+ * Hunter's Journal — a leather field journal open on a dark desk under a bad
+ * lamp. The left page is the contact list, the right page is the conversation,
+ * and the two are joined by a ringed spine. Everything here is this skin's
+ * own: nothing outside it may reach these rules, and these rules reach nothing
+ * outside.
+ *
+ * The three fonts carry the whole look, so they ship with the skin instead of
+ * being wished for: Caveat is the hand that writes the entries, Cinzel is what
+ * gets carved into warnings, Special Elite is the typewritten label under each
+ * line. Their family names are prefixed — @font-face names are global even
+ * inside a CSS module, and no other skin's font may ever resolve to these.
+ * Cinzel and Special Elite have no Cyrillic cut, so Ukrainian text in those two
+ * roles falls through to the stack's next font on purpose.
+ */
+
+/* Caveat — the handwriting. */
+@font-face {
+  font-family: 'HJCaveat';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/hunters-journal/caveat-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+
+@font-face {
+  font-family: 'HJCaveat';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/hunters-journal/caveat-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+@font-face {
+  font-family: 'HJCaveat';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/hunters-journal/caveat-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'HJCaveat';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/hunters-journal/caveat-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Cinzel — carved warnings. */
+@font-face {
+  font-family: 'HJCinzel';
+  font-style: normal;
+  font-weight: 600 900;
+  font-display: swap;
+  src: url('/fonts/hunters-journal/cinzel-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'HJCinzel';
+  font-style: normal;
+  font-weight: 600 900;
+  font-display: swap;
+  src: url('/fonts/hunters-journal/cinzel-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Special Elite — the typewritten labels. */
+@font-face {
+  font-family: 'HJTypewriter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/hunters-journal/special-elite-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'HJTypewriter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/hunters-journal/special-elite-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ── The desk ─────────────────────────────────────────────────────────── */
+
+.desk {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  color: #1a1a24;
+  /* The rule pitch of the paper. Every line of handwriting uses it as its
+     line-height, so the text sits *on* the lines instead of across them. */
+  --rule: 30px;
+  font-family: 'HJCaveat', 'Segoe Script', 'Bradley Hand', 'Comic Sans MS', cursive;
+  background:
+    repeating-linear-gradient(97deg, rgba(0, 0, 0, 0.26) 0 2px, rgba(0, 0, 0, 0) 2px 5px),
+    repeating-linear-gradient(6deg, rgba(0, 0, 0, 0.2) 0 3px, rgba(0, 0, 0, 0) 3px 7px),
+    radial-gradient(70% 55% at 20% 6%, #4a2f16 0%, #2c1b0a 44%, #170e05 78%, #0a0603 100%);
+}
+
+/* A lamp with a loose connection. */
+.lamp {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(36% 32% at 14% 8%, rgba(255, 176, 80, 0.26) 0%, rgba(0, 0, 0, 0) 66%),
+    radial-gradient(40% 34% at 88% 90%, rgba(200, 60, 20, 0.12) 0%, rgba(0, 0, 0, 0) 62%);
+  animation: hjLamp 7s ease-in-out infinite;
+}
+
+.cover {
+  position: absolute;
+  top: clamp(10px, 2.6vh, 24px);
+  right: clamp(8px, 2.8vw, 40px);
+  bottom: clamp(8px, 2.2vh, 20px);
+  left: clamp(8px, 2.8vw, 40px);
+  /* Scuffs live inside the leather; nothing may stick out and give the desk a
+     scrollable overflow. */
+  overflow: hidden;
+  border-radius: 8px 12px 12px 8px;
+  background:
+    repeating-linear-gradient(102deg, rgba(0, 0, 0, 0.2) 0 2px, rgba(0, 0, 0, 0) 2px 5px),
+    linear-gradient(160deg, #4e3018 0%, #341e0b 46%, #1e1106 100%);
+  box-shadow:
+    0 34px 80px rgba(2, 1, 0, 0.85),
+    inset 0 1px 0 rgba(255, 190, 120, 0.12),
+    inset 0 0 60px rgba(0, 0, 0, 0.65);
+}
+
+.scuffA,
+.scuffB,
+.scuffBurn {
+  position: absolute;
+}
+
+.scuffA {
+  top: 22%;
+  left: 18%;
+  width: 130px;
+  height: 3px;
+  background: rgba(200, 170, 130, 0.14);
+  box-shadow:
+    0 6px 0 -1px rgba(200, 170, 130, 0.08),
+    0 -9px 0 -1px rgba(200, 170, 130, 0.1);
+  transform: rotate(-34deg);
+}
+
+.scuffB {
+  right: 22%;
+  bottom: 18%;
+  width: 96px;
+  height: 2px;
+  background: rgba(200, 170, 130, 0.12);
+  box-shadow: 0 7px 0 -1px rgba(200, 170, 130, 0.09);
+  transform: rotate(28deg);
+}
+
+.scuffBurn {
+  top: 12%;
+  right: 8%;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  filter: blur(2px);
+  background: radial-gradient(
+    circle,
+    rgba(255, 110, 20, 0.2) 0%,
+    rgba(80, 30, 4, 0.5) 46%,
+    rgba(0, 0, 0, 0) 74%
+  );
+}
+
+/* The open book. Its jitter is a transform, which makes it a stacking context —
+   which is exactly why the bookmarks and their menu are siblings, not children. */
+.book {
+  position: absolute;
+  top: clamp(18px, 4.4vh, 40px);
+  right: clamp(16px, 4.2vw, 60px);
+  bottom: clamp(14px, 3.9vh, 36px);
+  left: clamp(16px, 4.2vw, 60px);
+  z-index: 1;
+  display: flex;
+  animation: hjJitter 11s steps(1) infinite;
+}
+
+/* ── Pages ────────────────────────────────────────────────────────────── */
+
+.page {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow:
+    inset -30px 0 46px rgba(30, 16, 4, 0.6),
+    inset 0 0 80px rgba(60, 34, 8, 0.34),
+    0 8px 22px rgba(2, 1, 0, 0.5);
+}
+
+.pageLeft {
+  padding: 22px 34px 18px 30px;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(50, 58, 92, 0) 0 calc(var(--rule) - 1px),
+      rgba(50, 58, 92, 0.2) calc(var(--rule) - 1px) var(--rule)
+    ),
+    radial-gradient(60% 40% at 78% 88%, rgba(96, 52, 14, 0.34) 0%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(40% 30% at 10% 40%, rgba(96, 52, 14, 0.22) 0%, rgba(0, 0, 0, 0) 60%),
+    linear-gradient(112deg, #e8dcc0 0%, #ddceac 44%, #cdbb94 78%, #bda87e 100%);
+}
+
+.pageRight {
+  flex: 1.36;
+  /* The right gutter is where the bookmarks lie on the page — they are
+     positioned against the desk, so this padding is what keeps text out from
+     under them. */
+  padding: 22px clamp(32px, 5vw, 76px) 18px 46px;
+  box-shadow:
+    inset 30px 0 46px rgba(30, 16, 4, 0.58),
+    inset 0 0 80px rgba(60, 34, 8, 0.32),
+    0 8px 22px rgba(2, 1, 0, 0.5);
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(50, 58, 92, 0) 0 calc(var(--rule) - 1px),
+      rgba(50, 58, 92, 0.19) calc(var(--rule) - 1px) var(--rule)
+    ),
+    radial-gradient(50% 36% at 88% 16%, rgba(96, 52, 14, 0.3) 0%, rgba(0, 0, 0, 0) 60%),
+    radial-gradient(46% 34% at 6% 82%, rgba(96, 52, 14, 0.26) 0%, rgba(0, 0, 0, 0) 60%),
+    linear-gradient(248deg, #e9ddc2 0%, #dfd0ae 44%, #cebc95 78%, #bca77d 100%);
+}
+
+/* The red margin rule, on the outer edge of each page. */
+.margin {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(124, 29, 18, 0.42);
+  pointer-events: none;
+}
+
+.marginLeft {
+  right: 20px;
+}
+
+.marginRight {
+  left: 34px;
+}
+
+/* Coffee rings, blood, a faint devil's trap drawn ages ago. Decoration only —
+   all of it is inside a page that clips, and none of it takes pointer events. */
+.decor {
+  position: absolute;
+  pointer-events: none;
+}
+
+.trapSmall {
+  top: 78px;
+  left: -30px;
+  width: 190px;
+  height: 190px;
+  opacity: 0.2;
+  color: #1a1a24;
+}
+
+.trapBig {
+  top: 46%;
+  left: 50%;
+  width: min(460px, 70%);
+  aspect-ratio: 1;
+  color: #1a1a24;
+  opacity: 0.13;
+  transform: translate(-50%, -50%);
+}
+
+.ringStain {
+  right: 30px;
+  bottom: 118px;
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(96, 52, 14, 0) 52%,
+    rgba(96, 52, 14, 0.34) 62%,
+    rgba(96, 52, 14, 0.16) 80%,
+    rgba(96, 52, 14, 0) 100%
+  );
+}
+
+.ringStainHigh {
+  top: 96px;
+  right: 74px;
+  bottom: auto;
+  width: 112px;
+  height: 112px;
+}
+
+.blood {
+  bottom: 190px;
+  left: 42px;
+  width: 40px;
+  height: 26px;
+  border-radius: 60% 40% 50% 45%;
+  filter: blur(0.4px);
+  background: radial-gradient(
+    circle at 40% 35%,
+    rgba(112, 16, 8, 0.62),
+    rgba(72, 8, 4, 0.42) 70%,
+    rgba(0, 0, 0, 0)
+  );
+}
+
+.bloodDrop {
+  bottom: 180px;
+  left: 80px;
+  width: 13px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(96, 12, 6, 0.5);
+}
+
+/* ── The spine ────────────────────────────────────────────────────────── */
+
+.spine {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  width: 42px;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  padding: 40px 0;
+  background: linear-gradient(90deg, rgba(12, 7, 3, 0.8), rgba(40, 24, 10, 0.62) 46%, rgba(12, 7, 3, 0.8));
+  box-shadow: inset 0 0 34px rgba(0, 0, 0, 0.8);
+}
+
+.ring {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 4px #8e887b,
+    0 2px 7px rgba(0, 0, 0, 0.75);
+}
+
+.ring:nth-child(even) {
+  box-shadow:
+    inset 0 0 0 4px #7d7669,
+    0 2px 7px rgba(0, 0, 0, 0.75);
+}
+
+/* ── Page headings ────────────────────────────────────────────────────── */
+
+.pageHead {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex: none;
+  padding-bottom: 6px;
+  border-bottom: 3px solid rgba(26, 26, 36, 0.6);
+}
+
+.stamp {
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: #1a1a24;
+  text-transform: uppercase;
+}
+
+.pageNo {
+  margin-left: auto;
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #6b5a38;
+}
+
+/* ── The contact list ─────────────────────────────────────────────────── */
+
+.searchRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  margin-top: 4px;
+  padding-bottom: 3px;
+  border-bottom: 1px dashed rgba(26, 26, 36, 0.35);
+  color: #5a5446;
+}
+
+.search {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 19px;
+  line-height: var(--rule);
+  color: #1a1a24;
+  outline: none;
+}
+
+.search::placeholder {
+  color: rgba(90, 84, 70, 0.75);
+}
+
+.entries {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  margin-top: 2px;
+  overflow-y: auto;
+  /* Explicit: with overflow-y set, a `visible` overflow-x computes to auto, and
+     the circled-entry ring hangs 6px past the edge — that would be enough to
+     make the list scroll sideways. */
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 29, 18, 0.45) transparent;
+}
+
+.entry {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 2px 4px 3px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.entryTop {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 19px;
+  line-height: var(--rule);
+}
+
+/* A live contact burns; someone you have not written to yet is only a rune. */
+.bullet {
+  flex: none;
+  color: #1a1a24;
+  animation: hjSigilBurn 4s ease-in-out infinite;
+}
+
+.bulletIdle {
+  color: #5a5446;
+  animation: none;
+}
+
+.entryName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entryTime {
+  flex: none;
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 10px;
+  color: #5f5133;
+}
+
+.entryNote {
+  display: block;
+  overflow: hidden;
+  padding-left: 26px;
+  font-size: 17px;
+  line-height: 22px;
+  color: #3d3a4a;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entryNoteOwn::before {
+  content: 'я: ';
+  color: #6b5a38;
+}
+
+/* The open conversation gets circled in the same red pen as the warnings. */
+.entry:hover .entryName,
+.entryActive .entryName {
+  color: #7c1d12;
+}
+
+.entryActive .bullet {
+  color: #7c1d12;
+}
+
+.entryActive::before {
+  content: '';
+  position: absolute;
+  inset: 0 -6px;
+  border-radius: 40% 46% 42% 48%;
+  box-shadow: inset 0 0 0 2px rgba(124, 29, 18, 0.5);
+  transform: rotate(-0.6deg);
+  pointer-events: none;
+}
+
+.groupLabel {
+  margin: 10px 0 2px;
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #6b5a38;
+}
+
+.note {
+  margin: 4px 0;
+  font-size: 18px;
+  line-height: 24px;
+  color: #5c5544;
+}
+
+.pageFoot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 3px solid rgba(26, 26, 36, 0.45);
+}
+
+/* Not decoration: it puts the pen back in the search line. */
+.footHint {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 18px;
+  color: #7c1d12;
+  cursor: pointer;
+}
+
+.footHint:hover {
+  color: #b02a17;
+}
+
+.footStamp {
+  margin-left: auto;
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  color: #6b5a38;
+}
+
+/* ── The conversation ─────────────────────────────────────────────────── */
+
+.threadHead {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex: none;
+  padding-bottom: 6px;
+  border-bottom: 3px solid rgba(26, 26, 36, 0.6);
+}
+
+.threadWho {
+  min-width: 0;
+  flex: 1;
+}
+
+.threadDate {
+  display: block;
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #6b5a38;
+}
+
+.threadTitle {
+  display: block;
+  overflow: hidden;
+  margin-top: 1px;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.05;
+  color: #1a1a24;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Carved in the margin, at the angle of someone writing in a hurry. */
+.carved {
+  flex: none;
+  font-family: 'HJCinzel', 'Trajan Pro', Georgia, serif;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.3;
+  letter-spacing: 1px;
+  color: #7c1d12;
+  text-align: right;
+  transform: rotate(-1.8deg);
+}
+
+.thread {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  padding-right: 4px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 29, 18, 0.45) transparent;
+}
+
+/* A call announcement: an entry the journal makes itself, not a spoken line. */
+.callNotice {
+  max-width: 82%;
+  flex: none;
+  align-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  font-family: 'HJCinzel', 'Trajan Pro', Georgia, serif;
+  font-size: 14px;
+  letter-spacing: 1.2px;
+  color: #7c1d12;
+  text-align: center;
+  box-shadow: inset 0 0 0 3px rgba(124, 29, 18, 0.4);
+  transform: rotate(-0.5deg);
+}
+
+.callNoticeText {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 900;
+}
+
+.msg {
+  max-width: 74%;
+  flex: none;
+  font-size: 19px;
+  line-height: 29px;
+  color: #1a1a24;
+}
+
+.msgOwn {
+  max-width: 70%;
+  align-self: flex-end;
+  color: #2a2438;
+  text-align: right;
+}
+
+.msgWho {
+  display: block;
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #6b5a38;
+}
+
+.msgText {
+  overflow-wrap: anywhere;
+}
+
+/* The rule that gets written down when the line goes quiet. */
+.warnBox {
+  position: relative;
+  max-width: 78%;
+  flex: none;
+  align-self: center;
+  padding: 8px 14px;
+  font-family: 'HJCinzel', 'Trajan Pro', Georgia, serif;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.5;
+  letter-spacing: 1.2px;
+  color: #7c1d12;
+  text-align: center;
+  box-shadow: inset 0 0 0 3px rgba(124, 29, 18, 0.55);
+  transform: rotate(-0.6deg);
+}
+
+.warnSigil {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  color: rgba(124, 29, 18, 0.7);
+  background: #ddceac;
+  border-radius: 50%;
+}
+
+.typing {
+  flex: none;
+  font-size: 18px;
+  color: #6b5a38;
+  transform: rotate(-0.8deg);
+}
+
+/* ── The composer ─────────────────────────────────────────────────────── */
+
+.composer {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  flex: none;
+  margin-top: 10px;
+}
+
+/* A note taped to the page, with the ink blot of whoever wrote before. */
+.noteWrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+  flex: 1;
+  padding: 10px 14px;
+  background: #f6efdd;
+  box-shadow:
+    0 9px 20px rgba(4, 2, 0, 0.5),
+    inset 0 0 0 1px rgba(90, 62, 20, 0.28);
+  transform: rotate(-0.5deg);
+}
+
+.tape {
+  position: absolute;
+  top: -9px;
+  left: 24px;
+  width: 58px;
+  height: 19px;
+  background: rgba(178, 152, 98, 0.62);
+  transform: rotate(-4deg);
+  pointer-events: none;
+}
+
+.inkBlot {
+  position: absolute;
+  right: 46px;
+  bottom: -5px;
+  width: 16px;
+  height: 11px;
+  border-radius: 50%;
+  background: rgba(112, 16, 8, 0.45);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 20px;
+  line-height: 1.3;
+  color: #2a2438;
+  outline: none;
+}
+
+.input::placeholder {
+  color: rgba(90, 84, 70, 0.7);
+}
+
+/* Stamped brass. The send button, the submit button, the title plate. */
+.plate {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  overflow: hidden;
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 2px;
+  font-family: 'HJCinzel', 'Trajan Pro', Georgia, serif;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: #241f19;
+  background: linear-gradient(
+    180deg,
+    #cac5bb 0%,
+    #a29c92 16%,
+    #7c766c 50%,
+    #948e85 54%,
+    #bab5ab 90%,
+    #736d64 100%
+  );
+  box-shadow:
+    0 8px 18px rgba(2, 1, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+}
+
+.plate:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.plate:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.plateLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Anonymous invite link */
+
+.inviteRow {
+  display: flex;
+  flex: none;
+  margin: 0 0 10px;
+}
+
+.inviteButton {
+  width: 100%;
+}
+
+.orRule {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'HJCinzel', 'Trajan Pro', Georgia, serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #5c5544;
+}
+
+.orRule::before,
+.orRule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(92, 85, 68, 0.45);
+}
+
+/* Wide enough for its own word: the plate is stamped brass, so the label
+   cannot be allowed to ellipsise inside it. */
+.plateSend {
+  min-width: 132px;
+  flex: none;
+  padding: 8px 16px;
+}
+
+/* ── The title plate on the cover ─────────────────────────────────────── */
+
+.hunt {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  z-index: 8;
+  gap: 14px;
+  padding: 8px 20px;
+  font-size: 13px;
+  letter-spacing: 4px;
+  transform: translateX(-50%);
+  cursor: default;
+}
+
+.hunt:hover {
+  filter: none;
+}
+
+.huntCar {
+  color: #1c1814;
+}
+
+.huntText {
+  overflow: hidden;
+  max-width: 46vw;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Bookmarks ────────────────────────────────────────────────────────── */
+
+/* Outside `.book` on purpose: that element animates a transform, and anything
+   inside it could never lift its menu above the page. */
+.marks {
+  position: absolute;
+  top: clamp(60px, 12vh, 110px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.markHolder {
+  position: relative;
+  display: flex;
+}
+
+.mark {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px 8px 10px;
+  border: 0;
+  border-radius: 3px 0 0 3px;
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #4f4a3c;
+  background: linear-gradient(90deg, #cfc09b, #ae9c74);
+  box-shadow: -3px 3px 9px rgba(2, 1, 0, 0.6);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mark:hover {
+  filter: brightness(1.06);
+}
+
+.markStrong {
+  color: #1a1a24;
+  background: linear-gradient(90deg, #d9cba7, #b8a67e);
+}
+
+.markRed {
+  color: #7c1d12;
+  background: linear-gradient(90deg, #c2b28b, #9c8a62);
+}
+
+.skinMenu {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 8px);
+  z-index: 30;
+  width: 250px;
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
+  padding: 8px;
+  background: linear-gradient(160deg, #efe4c6, #d8c8a2);
+  box-shadow:
+    0 20px 40px rgba(2, 1, 0, 0.7),
+    inset 0 0 0 1px rgba(90, 62, 20, 0.4);
+}
+
+.skinOption {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 18px;
+  color: #1a1a24;
+  text-align: left;
+  cursor: pointer;
+}
+
+.skinOption:hover {
+  background: rgba(124, 29, 18, 0.1);
+}
+
+.skinOptionActive {
+  color: #7c1d12;
+  box-shadow: inset 0 0 0 2px rgba(124, 29, 18, 0.45);
+}
+
+.swatch {
+  display: flex;
+  width: 34px;
+  height: 14px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(26, 26, 36, 0.35);
+}
+
+.swatch span {
+  flex: 1;
+}
+
+/* ── The call ─────────────────────────────────────────────────────────── */
+
+/* Photographs pinned over the page while the line is open. */
+.call {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tiles {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.tile {
+  position: relative;
+  width: 190px;
+  flex: none;
+  padding: 8px 8px 26px;
+  background: #f2e9d4;
+  box-shadow: 0 11px 24px rgba(4, 2, 0, 0.58);
+  transform: rotate(1.6deg);
+  cursor: pointer;
+}
+
+/* Both photographs laid out over the desk, one above the other, controls between */
+
+.expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  padding: 22px;
+  background: rgba(12, 8, 4, 0.93);
+}
+
+.expandedStack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.expandedTile {
+  composes: tile;
+  width: auto;
+  flex: 1;
+  min-height: 0;
+  transform: none;
+  cursor: default;
+}
+
+.expandedTile:nth-child(even) {
+  transform: none;
+}
+
+.expandedTile video {
+  height: 100%;
+}
+
+.expandedBar {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  background: rgba(20, 14, 8, 0.9);
+  box-shadow: inset 0 0 0 2px rgba(221, 206, 172, 0.35);
+}
+
+.tile:nth-child(even) {
+  transform: rotate(-2.2deg);
+}
+
+.tile video {
+  width: 100%;
+  height: clamp(110px, 18vh, 150px);
+  object-fit: cover;
+  background: linear-gradient(170deg, #3c3529 0%, #251f17 52%, #12100b 100%);
+}
+
+.tileName {
+  position: absolute;
+  right: 0;
+  bottom: 5px;
+  left: 0;
+  overflow: hidden;
+  font-size: 16px;
+  color: #1a1a24;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.callBar {
+  display: flex;
+  gap: 8px;
+}
+
+.callBar .plate {
+  padding: 7px 12px;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.captions {
+  padding: 6px 10px;
+  font-size: 18px;
+  line-height: 24px;
+  color: #2a2438;
+  background: rgba(246, 239, 221, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(90, 62, 20, 0.25);
+}
+
+.captionWho {
+  margin-right: 6px;
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #7c1d12;
+}
+
+.captionInterim {
+  color: #6b5a38;
+}
+
+.error {
+  margin: 4px 0;
+  font-family: 'HJCinzel', 'Trajan Pro', Georgia, serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #7c1d12;
+}
+
+/* ── The ledger (sign in) ─────────────────────────────────────────────── */
+
+.ledger {
+  width: min(420px, 100%);
+  flex: none;
+  margin: 0 auto;
+  padding: 26px 30px 24px;
+}
+
+.ledgerForm {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex: none;
+  margin-top: 6px;
+}
+
+.tab {
+  padding: 5px 12px;
+  border: 0;
+  background: none;
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #6b5a38;
+  box-shadow: inset 0 0 0 2px rgba(26, 26, 36, 0.25);
+  cursor: pointer;
+}
+
+.tabActive {
+  color: #7c1d12;
+  box-shadow: inset 0 0 0 2px rgba(124, 29, 18, 0.55);
+}
+
+.field {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 0;
+}
+
+.label {
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #6b5a38;
+}
+
+.fieldLine {
+  border-bottom: 1px solid rgba(26, 26, 36, 0.45);
+}
+
+.fieldLine .input {
+  font-size: 19px;
+  line-height: var(--rule);
+}
+
+.ledgerSubmit {
+  margin-top: 6px;
+  flex: none;
+  /* The form stretches its children; a brass plate is a stamped object and
+     keeps its own size. */
+  align-self: flex-start;
+  padding: 10px 22px;
+}
+
+/* ── The grime over everything ────────────────────────────────────────── */
+
+.grime {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(88deg, rgba(0, 0, 0, 0.08) 0 1px, rgba(0, 0, 0, 0) 1px 4px),
+    radial-gradient(40% 36% at 12% 10%, rgba(255, 180, 90, 0.12) 0%, rgba(0, 0, 0, 0) 70%),
+    radial-gradient(130% 106% at 50% 50%, rgba(0, 0, 0, 0) 42%, rgba(6, 3, 0, 0.78) 100%);
+}
+
+/* ── Motion ───────────────────────────────────────────────────────────── */
+
+@keyframes hjLamp {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  12% {
+    opacity: 0.42;
+  }
+  16% {
+    opacity: 0.95;
+  }
+  38% {
+    opacity: 1;
+  }
+  44% {
+    opacity: 0.55;
+  }
+  47% {
+    opacity: 0.98;
+  }
+  62% {
+    opacity: 0.72;
+  }
+  78% {
+    opacity: 1;
+  }
+  86% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes hjSigilBurn {
+  0%,
+  100% {
+    opacity: 0.34;
+    filter: none;
+  }
+  50% {
+    opacity: 0.72;
+    filter: drop-shadow(0 0 10px rgba(255, 120, 30, 0.6));
+  }
+}
+
+@keyframes hjJitter {
+  0%,
+  92%,
+  100% {
+    transform: translate(0, 0);
+  }
+  94% {
+    transform: translate(-1px, 1px);
+  }
+  96% {
+    transform: translate(1px, -1px);
+  }
+  98% {
+    transform: translate(-1px, 0);
+  }
+}
+
+/*
+ * Phone. A two-page spread cannot survive 390px — the spine alone eats a tenth
+ * of it — so the book turns into a single page and the route decides which one.
+ * The bookmarks come off the right edge and become a thumb-height strip along
+ * the bottom, which is also where the skin picker now opens upward from.
+ */
+@media (max-width: 720px) {
+  .desk {
+    /* dvh, not vh: the mobile URL bar must not push the composer off-screen. */
+    height: 100dvh;
+    --rule: 26px;
+  }
+
+  /* The plate still sits on the cover's top edge, so both start below it. */
+  .cover {
+    top: calc(18px + env(safe-area-inset-top));
+    right: 6px;
+    bottom: calc(52px + env(safe-area-inset-bottom));
+    left: 6px;
+    border-radius: 6px;
+  }
+
+  .book {
+    top: calc(34px + env(safe-area-inset-top));
+    right: 14px;
+    bottom: calc(60px + env(safe-area-inset-bottom));
+    left: 14px;
+    /* One page, so nothing shakes off its neighbour. */
+    animation: none;
+  }
+
+  /* The spread becomes a single page: the route already says which one. */
+  .spine {
+    display: none;
+  }
+
+  .bookRoom .pageLeft,
+  .bookList .pageRight {
+    display: none;
+  }
+
+  .page {
+    flex: 1;
+    box-shadow:
+      inset 0 0 60px rgba(60, 34, 8, 0.34),
+      0 8px 22px rgba(2, 1, 0, 0.5);
+  }
+
+  .pageLeft,
+  .pageRight {
+    padding: 14px 16px 12px 20px;
+  }
+
+  .marginLeft,
+  .marginRight {
+    left: 12px;
+    right: auto;
+  }
+
+  /* Coffee rings and traps are placed for a 1440px page; at this width they
+     only muddy the text. */
+  .decor,
+  .huntCar {
+    display: none;
+  }
+
+  .hunt {
+    top: calc(6px + env(safe-area-inset-top));
+    padding: 5px 12px;
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .huntText {
+    max-width: 62vw;
+  }
+
+  .stamp {
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+
+  .entryTop {
+    font-size: 18px;
+  }
+
+  .entryNote {
+    padding-left: 24px;
+    font-size: 16px;
+    line-height: 20px;
+    white-space: normal;
+  }
+
+  .entry {
+    /* A whole entry — name and its note — has to be one comfortable target. */
+    min-height: 48px;
+    padding: 4px 2px;
+  }
+
+  .threadTitle {
+    font-size: 25px;
+  }
+
+  .threadHead {
+    gap: 8px;
+  }
+
+  /* The heading has to hold a title and two controls; the carved handle is the
+     one thing there that is already written on the left page. */
+  .carved {
+    display: none;
+  }
+
+  /* Icon-only controls: at this width their words would push out the title. */
+  .threadHead .plateLabel {
+    display: none;
+  }
+
+  .threadHead .plate {
+    padding: 8px 10px;
+  }
+
+  .msg,
+  .msgOwn {
+    max-width: 90%;
+    font-size: 18px;
+    line-height: 25px;
+  }
+
+  .warnBox {
+    max-width: 100%;
+    font-size: 12px;
+    transform: none;
+  }
+
+  .noteWrap {
+    padding: 8px 12px;
+    transform: none;
+  }
+
+  .tape,
+  .inkBlot {
+    display: none;
+  }
+
+  .search,
+  .input {
+    /* Under 16px iOS zooms the page in on focus and never zooms back. */
+    font-size: 16px;
+  }
+
+  .composer {
+    gap: 8px;
+  }
+
+  /* Every pixel the plate gives up goes to the note. */
+  .plateSend {
+    min-width: 0;
+    padding: 8px 12px;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+
+  /* Bookmarks off the spine, into thumb reach. */
+  .marks {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    flex-direction: row;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, rgba(10, 6, 3, 0), rgba(10, 6, 3, 0.85) 45%);
+  }
+
+  .mark {
+    min-height: 40px;
+    border-radius: 3px;
+    box-shadow: 0 3px 9px rgba(2, 1, 0, 0.6);
+  }
+
+  .skinMenu {
+    top: auto;
+    right: auto;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    width: min(280px, calc(100vw - 24px));
+    max-height: 56dvh;
+    transform: translateX(-50%);
+  }
+
+  .ledger {
+    width: 100%;
+    padding: 18px 18px 16px;
+  }
+
+  /* On a phone the one action on the page is worth the full width. */
+  .ledgerSubmit {
+    align-self: stretch;
+  }
+
+  .tiles {
+    gap: 8px;
+  }
+
+  .tile {
+    width: 150px;
+    transform: none;
+  }
+
+  .tile:nth-child(even) {
+    transform: none;
+  }
+
+  .grime {
+    /* The vignette is tuned for a wide spread; on a phone it just eats the
+       margins of the only page there is. */
+    background:
+      repeating-linear-gradient(88deg, rgba(0, 0, 0, 0.06) 0 1px, rgba(0, 0, 0, 0) 1px 4px),
+      radial-gradient(150% 120% at 50% 50%, rgba(0, 0, 0, 0) 58%, rgba(6, 3, 0, 0.6) 100%);
+  }
+
+  .inviteRow {
+    margin-bottom: 8px;
+  }
+
+  /* A brass plate ellipsises its label so a word never overruns the stamping;
+     on a phone that would eat "БЕЗІМЕННА НИТКА" whole, so this one wraps. */
+  .inviteButton .plateLabel,
+  .ledgerSubmit .plateLabel {
+    overflow: visible;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .orRule {
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+}
+
+@media (pointer: coarse) {
+  .mark,
+  .plate,
+  .skinOption,
+  .tab,
+  .footHint {
+    min-height: 44px;
+  }
+}
+
+/* A flickering lamp is atmosphere for some and a headache for others. */
+@media (prefers-reduced-motion: reduce) {
+  .lamp,
+  .book,
+  .bullet {
+    animation: none;
+  }
+
+  .lamp {
+    opacity: 0.8;
+  }
+
+  .bullet {
+    opacity: 0.6;
+  }
+}
