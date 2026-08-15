@@ -22,3 +22,4 @@ apps/media-ai-service/bin/
 
 .claude/
 themes/
+DEPLOY.md
