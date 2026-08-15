@@ -565,8 +565,9 @@
 }
 
 .tiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 8px;
   /* A definite height: a camera tile sizes itself from the video stream, and
      720p would otherwise push the thread and the composer off the screen. */
@@ -579,6 +580,12 @@
   overflow: hidden;
   box-shadow: inset 0 0 0 1px rgba(60, 45, 25, 0.4);
   cursor: pointer;
+  /* Square, always: a camera stretched to the pane width reads as a letterbox
+     strip. The row sets the height, the feed takes a square out of it. */
+  height: 100%;
+  aspect-ratio: 1;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 /* Обидва знімки на весь стіл, один під одним, кнопки — на стику */
@@ -596,13 +603,20 @@
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  /* Room at the foot for the control bar, which no longer has a seam to sit on. */
+  padding-bottom: clamp(56px, 11vh, 104px);
   gap: 10px;
 }
 
 .expandedTile {
   composes: tile;
-  flex: 1;
+  flex: 0 1 auto;
+  /* Bounded by the shorter side, so two squares always fit across. */
+  height: min(100%, calc(50vw - 40px));
+  aspect-ratio: 1;
   min-height: 0;
   cursor: default;
 }
@@ -610,8 +624,8 @@
 .expandedBar {
   position: absolute;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  bottom: clamp(16px, 4vh, 40px);
+  transform: translateX(-50%);
   z-index: 1;
   display: flex;
   gap: 10px;

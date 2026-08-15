@@ -1078,6 +1078,7 @@
 
 .tiles {
   display: flex;
+  justify-content: center;
   gap: 12px;
   overflow-x: auto;
   padding-bottom: 4px;
@@ -1109,14 +1110,20 @@
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  /* Room at the foot for the control bar, which no longer has a seam to sit on. */
+  padding-bottom: clamp(56px, 11vh, 104px);
   gap: 14px;
 }
 
+/* Two prints laid side by side, each as wide as the shorter side allows, so
+   both stay square with the controls below them. */
 .expandedTile {
   composes: tile;
-  width: auto;
-  flex: 1;
+  width: min(46vw, 74vh);
+  flex: 0 1 auto;
   min-height: 0;
   transform: none;
   cursor: default;
@@ -1133,8 +1140,8 @@
 .expandedBar {
   position: absolute;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  bottom: clamp(16px, 4vh, 40px);
+  transform: translateX(-50%);
   z-index: 1;
   display: flex;
   gap: 8px;
@@ -1148,9 +1155,12 @@
   transform: rotate(-2.2deg);
 }
 
+/* A square photograph, as one comes out of a camera and onto a page — a feed
+   stretched to the width of the card would read as a letterbox strip. */
 .tile video {
   width: 100%;
-  height: clamp(110px, 18vh, 150px);
+  height: auto;
+  aspect-ratio: 1;
   object-fit: cover;
   background: linear-gradient(170deg, #3c3529 0%, #251f17 52%, #12100b 100%);
 }
