@@ -16,6 +16,7 @@ import {
   useCallStage,
   useCaptionFeed,
   useChatListController,
+  useIdentityController,
   useInviteAcceptController,
   useInviteController,
   useRoomController,
@@ -242,6 +243,37 @@ function Contacts({ activeRoomId }: { activeRoomId?: string }) {
   );
 }
 
+/**
+ * A guest arrives as `user3737` — a number, not a name. This strip is where it
+ * gets replaced, without an account and without leaving the room.
+ */
+function Greeting() {
+  const me = useIdentityController();
+  if (!me.editable) return null;
+
+  return (
+    <div className={css.greeting}>
+      <span>Привіт,</span>
+      <input
+        className={css.greetingInput}
+        value={me.draft}
+        maxLength={me.maxLength}
+        disabled={me.pending}
+        aria-label="Ваше ім’я в чаті"
+        onChange={(event) => me.setDraft(event.target.value)}
+        onBlur={me.save}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+          if (event.key === 'Escape') me.cancel();
+        }}
+      />
+      <span className={me.error ? css.greetingError : css.greetingHint}>
+        {me.error ?? (me.pending ? 'Зберігаємо…' : me.dirty ? 'Enter — зберегти' : 'можна змінити')}
+      </span>
+    </div>
+  );
+}
+
 function Conversation({ roomId }: { roomId: string }) {
   const room = useRoomController(roomId);
 
@@ -265,6 +297,8 @@ function Conversation({ roomId }: { roomId: string }) {
           <span className={css.pillLabel}>Назад</span>
         </button>
       </div>
+
+      <Greeting />
 
       {room.inCall && <Call roomId={roomId} onEnd={room.toggleCall} />}
 

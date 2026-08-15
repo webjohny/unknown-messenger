@@ -16,6 +16,7 @@ import {
   useCallStage,
   useCaptionFeed,
   useChatListController,
+  useIdentityController,
   useInviteAcceptController,
   useInviteController,
   useRoomController,
@@ -241,6 +242,37 @@ function Rail({ activeRoomId }: { activeRoomId?: string }) {
   );
 }
 
+/**
+ * A guest is issued `user3737` — a serial, not a callsign. This readout is
+ * where it gets overwritten, without an account.
+ */
+function Greeting() {
+  const me = useIdentityController();
+  if (!me.editable) return null;
+
+  return (
+    <div className={css.greeting}>
+      <span className={css.greetingLabel}>callsign //</span>
+      <input
+        className={css.greetingInput}
+        value={me.draft}
+        maxLength={me.maxLength}
+        disabled={me.pending}
+        aria-label="Ваше ім’я в чаті"
+        onChange={(event) => me.setDraft(event.target.value)}
+        onBlur={me.save}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+          if (event.key === 'Escape') me.cancel();
+        }}
+      />
+      <span className={me.error ? css.greetingError : css.greetingHint}>
+        {me.error ?? (me.pending ? 'sync…' : me.dirty ? 'enter to commit' : 'editable')}
+      </span>
+    </div>
+  );
+}
+
 function Channel({ roomId }: { roomId: string }) {
   const room = useRoomController(roomId);
 
@@ -268,6 +300,8 @@ function Channel({ roomId }: { roomId: string }) {
           <span className={css.ghostLabel}>Back</span>
         </button>
       </div>
+
+      <Greeting />
 
       {room.inCall && <Call roomId={roomId} onEnd={room.toggleCall} />}
 

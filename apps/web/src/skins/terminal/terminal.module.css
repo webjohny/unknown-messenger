@@ -110,6 +110,43 @@
   color: #6f7fc8;
 }
 
+/* /nick, with a field instead of a command line. */
+.greeting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.greetingLabel {
+  color: #55ffff;
+}
+
+.greetingInput {
+  width: 16ch;
+  max-width: 100%;
+  padding: 2px 6px;
+  border: 1px solid #00a8a8;
+  background: #000042;
+  outline: 0;
+  font: inherit;
+  color: #ffff55;
+}
+
+.greetingInput:focus {
+  border-color: #55ffff;
+}
+
+.greetingHint {
+  color: #6f7fc8;
+}
+
+.greetingError {
+  color: #ff5555;
+}
+
 .index {
   flex: 1;
   min-height: 0;

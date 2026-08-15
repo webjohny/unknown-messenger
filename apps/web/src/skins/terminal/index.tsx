@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import {
   useAuthController,
   useChatListController,
+  useIdentityController,
   useInviteAcceptController,
   useInviteController,
   useRoomController,
@@ -154,6 +155,37 @@ function ChannelIndex() {
   );
 }
 
+/**
+ * A guest is issued `user3737` — a serial, not a nick. This is `/nick` with a
+ * field instead of a command, since the client has no command line for it.
+ */
+function Greeting() {
+  const me = useIdentityController();
+  if (!me.editable) return null;
+
+  return (
+    <p className={css.greeting}>
+      <span className={css.greetingLabel}>/nick</span>
+      <input
+        className={css.greetingInput}
+        value={me.draft}
+        maxLength={me.maxLength}
+        disabled={me.pending}
+        aria-label="Ваше ім’я в чаті"
+        onChange={(event) => me.setDraft(event.target.value)}
+        onBlur={me.save}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+          if (event.key === 'Escape') me.cancel();
+        }}
+      />
+      <span className={me.error ? css.greetingError : css.greetingHint}>
+        {me.error ?? (me.pending ? '* saving…' : me.dirty ? '* ENTER to apply' : '* editable')}
+      </span>
+    </p>
+  );
+}
+
 function ChannelLog({ roomId, onSkins }: { roomId: string; onSkins: () => void }) {
   const room = useRoomController(roomId);
 
@@ -176,6 +208,8 @@ function ChannelLog({ roomId, onSkins }: { roomId: string; onSkins: () => void }
           #{room.title} {room.peer ? `(@${room.peer.username})` : ''}
         </p>
         <p className={css.rule}>{'═'.repeat(120)}</p>
+
+        <Greeting />
 
         {room.inCall && <CallPane roomId={roomId} onEnd={room.toggleCall} />}
 
@@ -203,7 +237,9 @@ function ChannelLog({ roomId, onSkins }: { roomId: string; onSkins: () => void }
               <div key={message.id} className={css.line}>
                 <span className={css.stamp}>[{message.time}]</span>
                 <span className={`${css.nick} ${message.own ? css.nickOwn : ''}`}>
-                  &lt;{message.sender.username}&gt;
+                  {/* The nick is the display name: a guest who renames itself
+                      has to be visible under the new one in the log too. */}
+                  &lt;{message.sender.displayName}&gt;
                 </span>
                 <span className={css.text}>{message.body}</span>
               </div>

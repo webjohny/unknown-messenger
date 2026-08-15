@@ -317,6 +317,51 @@
   color: #2f4a63;
 }
 
+/* Записка з власним іменем гостя — її можна переписати просто тут. */
+.greeting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  margin: 10px 6px 0;
+  padding: 8px 14px;
+  border: 1px dashed #c3ab7d;
+  border-radius: 3px;
+  background: #fff8dd;
+  transform: rotate(-0.6deg);
+  box-shadow: 2px 3px 0 rgba(120, 95, 60, 0.15);
+  font-size: 14px;
+  color: #3a2f22;
+}
+
+.greetingInput {
+  width: 12ch;
+  max-width: 100%;
+  padding: 3px 6px;
+  border: 0;
+  border-bottom: 2px solid #c3ab7d;
+  background: transparent;
+  outline: 0;
+  font: inherit;
+  font-weight: 700;
+  color: #7a4b2a;
+}
+
+.greetingInput:focus {
+  border-bottom-color: #7a4b2a;
+}
+
+.greetingHint {
+  font-size: 13px;
+  color: #8a7757;
+}
+
+.greetingError {
+  font-size: 13px;
+  color: #a8442f;
+}
+
 .notes {
   flex: 1;
   min-height: 0;

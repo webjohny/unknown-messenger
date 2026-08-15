@@ -94,6 +94,10 @@ export const api = {
     request<{ ok: true }>(`/rooms/${roomName}/end`, { method: 'POST' }),
 
   searchUsers: (q: string) => request<AuthUser[]>(`/users/search?q=${encodeURIComponent(q)}`),
+
+  /** Renames the caller — the only profile edit a guest has. */
+  renameMe: (displayName: string) =>
+    request<AuthUser>('/users/me', { method: 'PATCH', body: JSON.stringify({ displayName }) }),
 };
 
 export { ApiError };

@@ -43,6 +43,8 @@ export const WS_EVENTS = {
   typing: 'presence:typing',
   presence: 'presence:update',
   roomCreated: 'room:created',
+  /** A member changed their profile — carries the whole public user. */
+  userUpdated: 'user:updated',
   caption: 'call:caption',
   transcriptSaved: 'call:transcript-saved',
 } as const;

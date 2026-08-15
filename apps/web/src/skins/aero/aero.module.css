@@ -288,6 +288,49 @@
   opacity: 0.8;
 }
 
+/* The guest's own name, editable in place — a frosted strip under the header. */
+.greeting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 18px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.42);
+  font-size: 13px;
+  color: #06344f;
+}
+
+.greetingInput {
+  width: 13ch;
+  max-width: 100%;
+  padding: 5px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  outline: 0;
+  font: inherit;
+  font-weight: 600;
+  color: #06344f;
+}
+
+.greetingInput:focus {
+  border-color: #12a6e0;
+  box-shadow: 0 0 0 3px rgba(18, 166, 224, 0.25);
+}
+
+.greetingHint {
+  font-size: 12px;
+  color: #0a6fa8;
+}
+
+.greetingError {
+  font-size: 12px;
+  color: #a3123a;
+}
+
 .thread {
   flex: 1;
   min-height: 0;

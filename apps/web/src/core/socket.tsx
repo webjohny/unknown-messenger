@@ -6,6 +6,7 @@ import { io, type Socket } from 'socket.io-client';
 
 import { useAuthStore } from '@/lib/auth-store';
 import { env } from '@/lib/env';
+import type { AuthUser } from '@/lib/types';
 
 interface SessionSocket {
   socket: Socket | null;
@@ -90,9 +91,19 @@ export function SessionSocketProvider({ children }: { children: React.ReactNode 
       void useAuthStore.getState().refresh();
     };
 
+    // Somebody renamed themselves. Their name is copied into every room and
+    // every message already on screen, so the only fix is to read both again —
+    // and if it was us, the session's own copy is stale too.
+    const onUserUpdated = (updated: AuthUser) => {
+      const { user, setUser } = useAuthStore.getState();
+      if (user && user.id === updated.id) setUser({ ...user, ...updated });
+      resync();
+    };
+
     next.on('connect', onConnect);
     next.on('disconnect', onDisconnect);
     next.on('connect_error', onConnectError);
+    next.on('user:updated', onUserUpdated);
     // Nest emits this when a handler throws (validation, guards, service errors).
     next.on('exception', (err) => console.error('[ws] exception:', err));
 

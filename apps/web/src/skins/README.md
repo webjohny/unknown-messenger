@@ -56,6 +56,7 @@ export function <X>Skin({ view }: SkinProps) { … }
 | `useAuthController()` | режим, поля, `submit`, `pending`, `error` |
 | `useChatListController()` | пошук, `chats`, `people`, стани завантаження |
 | `useRoomController(roomId)` | заголовок, повідомлення (`own`, `time`), набір тексту, чернетка, дзвінок |
+| `useIdentityController()` | власне ім’я гостя: `draft`, `save`, `cancel`, `error`, `editable` |
 | `useCallController(roomId)` + `CallRoot` | під’єднання до кімнати |
 | `useCallStage()`, `useCallControls()`, `useCaptionFeed()` | плитки, мікрофон/камера, субтитри |
 | `useCallExpansion()` + `CallOverlay` | розгортання дзвінка поверх сторінки |
@@ -71,6 +72,14 @@ export function <X>Skin({ view }: SkinProps) { … }
 закривають). Усередині скін малює ті самі плитки стовпчиком, а кнопки — по
 центру, на стику між ними. Класи однакові в усіх скінах: `.expanded`,
 `.expandedStack`, `.expandedTile` (через `composes: tile`), `.expandedBar`.
+
+### Ім’я гостя
+
+Гість заходить по анонімному посиланню як `user3737`. `useIdentityController()`
+дає рядок-привітання з інпутом (`editable` — тільки для гостя): Enter або втрата
+фокуса зберігає, Escape повертає старе. Сервер (`PATCH /api/users/me`) перевіряє
+ім’я за білим списком символів і розсилає `user:updated` у всі кімнати
+користувача, тож нове ім’я одразу зʼявляється в усіх учасників.
 
 ### Оголошення про дзвінок
 

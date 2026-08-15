@@ -629,6 +629,58 @@
   transform: rotate(-1.8deg);
 }
 
+/* Гість підписує сторінку власною рукою — просто в рядку над записами. */
+.greeting {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  flex: none;
+  margin-top: 8px;
+  font-family: 'HJCaveat', 'Segoe Script', cursive;
+  font-size: 20px;
+  color: #3a3426;
+}
+
+.greetingLabel {
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #5c5544;
+}
+
+.greetingInput {
+  width: 13ch;
+  max-width: 100%;
+  padding: 0 4px 2px;
+  border: 0;
+  border-bottom: 2px solid rgba(124, 29, 18, 0.5);
+  background: none;
+  outline: none;
+  font: inherit;
+  color: #7c1d12;
+}
+
+.greetingInput:focus {
+  border-bottom-color: #7c1d12;
+}
+
+.greetingHint,
+.greetingError {
+  font-family: 'HJTypewriter', 'Courier New', ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.greetingHint {
+  color: #5c5544;
+}
+
+.greetingError {
+  color: #7c1d12;
+}
+
 .thread {
   position: relative;
   display: flex;

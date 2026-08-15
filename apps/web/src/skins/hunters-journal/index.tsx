@@ -15,6 +15,7 @@ import {
   useCallStage,
   useCaptionFeed,
   useChatListController,
+  useIdentityController,
   useInviteAcceptController,
   useInviteController,
   useRoomController,
@@ -269,6 +270,37 @@ function IdlePage() {
   );
 }
 
+/**
+ * A guest is written into the journal as `user3737` — a number, not a name.
+ * This is the line where they sign it themselves, no account behind it.
+ */
+function Greeting() {
+  const me = useIdentityController();
+  if (!me.editable) return null;
+
+  return (
+    <div className={css.greeting}>
+      <span className={css.greetingLabel}>ПІДПИС:</span>
+      <input
+        className={css.greetingInput}
+        value={me.draft}
+        maxLength={me.maxLength}
+        disabled={me.pending}
+        aria-label="Ваше ім’я в чаті"
+        onChange={(event) => me.setDraft(event.target.value)}
+        onBlur={me.save}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+          if (event.key === 'Escape') me.cancel();
+        }}
+      />
+      <span className={me.error ? css.greetingError : css.greetingHint}>
+        {me.error ?? (me.pending ? 'вписую…' : me.dirty ? 'Enter — вписати' : 'можна змінити')}
+      </span>
+    </div>
+  );
+}
+
 function ThreadPage({ roomId }: { roomId: string }) {
   const room = useRoomController(roomId);
 
@@ -310,6 +342,8 @@ function ThreadPage({ roomId }: { roomId: string }) {
           <span className={css.plateLabel}>НАЗАД</span>
         </button>
       </div>
+
+      <Greeting />
 
       {room.inCall && <Call roomId={roomId} onEnd={room.toggleCall} />}
 

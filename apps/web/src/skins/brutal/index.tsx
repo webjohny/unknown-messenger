@@ -7,6 +7,7 @@ import {
   initials,
   useAuthController,
   useChatListController,
+  useIdentityController,
   useInviteAcceptController,
   useInviteController,
   useRoomController,
@@ -235,6 +236,37 @@ function ContactsBlock({ activeRoomId }: { activeRoomId?: string }) {
   );
 }
 
+/**
+ * A guest arrives as `user3737` — a number, not a name. This band is where it
+ * gets typed over, no account required.
+ */
+function Greeting() {
+  const me = useIdentityController();
+  if (!me.editable) return null;
+
+  return (
+    <div className={css.greeting}>
+      <span>ПРИВІТ,</span>
+      <input
+        className={css.greetingInput}
+        value={me.draft}
+        maxLength={me.maxLength}
+        disabled={me.pending}
+        aria-label="Ваше ім’я в чаті"
+        onChange={(event) => me.setDraft(event.target.value)}
+        onBlur={me.save}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+          if (event.key === 'Escape') me.cancel();
+        }}
+      />
+      <span className={me.error ? css.greetingError : css.greetingHint}>
+        {me.error ?? (me.pending ? 'ЗБЕРІГАЄМО…' : me.dirty ? 'ENTER — ЗБЕРЕГТИ' : 'МОЖНА ЗМІНИТИ')}
+      </span>
+    </div>
+  );
+}
+
 function Thread({ roomId }: { roomId: string }) {
   const room = useRoomController(roomId);
 
@@ -265,6 +297,8 @@ function Thread({ roomId }: { roomId: string }) {
           Threads
         </button>
       </div>
+
+      <Greeting />
 
       {room.inCall && <CallBlock roomId={roomId} onEnd={room.toggleCall} />}
 

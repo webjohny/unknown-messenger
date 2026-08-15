@@ -15,6 +15,7 @@ import {
   useCallStage,
   useCaptionFeed,
   useChatListController,
+  useIdentityController,
   useInviteAcceptController,
   useInviteController,
   useRoomController,
@@ -229,6 +230,37 @@ function Stations({ activeRoomId }: { activeRoomId?: string }) {
   );
 }
 
+/**
+ * A guest is issued `user3737` — a serial, not a handle. This is the line that
+ * lets them rewrite it, with no account behind it.
+ */
+function Greeting() {
+  const me = useIdentityController();
+  if (!me.editable) return null;
+
+  return (
+    <div className={css.greeting}>
+      <span className={css.greetingLabel}>handle</span>
+      <input
+        className={css.greetingInput}
+        value={me.draft}
+        maxLength={me.maxLength}
+        disabled={me.pending}
+        aria-label="Ваше ім’я в чаті"
+        onChange={(event) => me.setDraft(event.target.value)}
+        onBlur={me.save}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+          if (event.key === 'Escape') me.cancel();
+        }}
+      />
+      <span className={me.error ? css.greetingError : css.greetingHint}>
+        {me.error ?? (me.pending ? 'saving…' : me.dirty ? 'enter to save' : 'editable')}
+      </span>
+    </div>
+  );
+}
+
 function Feed({ roomId }: { roomId: string }) {
   const room = useRoomController(roomId);
 
@@ -254,6 +286,8 @@ function Feed({ roomId }: { roomId: string }) {
           <span className={css.neonLabel}>Back</span>
         </button>
       </div>
+
+      <Greeting />
 
       {room.inCall && <Call roomId={roomId} onEnd={room.toggleCall} />}
 

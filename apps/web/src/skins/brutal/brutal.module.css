@@ -377,6 +377,45 @@
   color: #fff;
 }
 
+/* The guest's own name, editable in place — a yellow band under the actions. */
+.greeting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  padding: 10px 18px;
+  border-bottom: 5px solid #000;
+  background: #d6ff2e;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.greetingInput {
+  width: 13ch;
+  max-width: 100%;
+  padding: 6px 10px;
+  border: 4px solid #000;
+  background: #fff;
+  outline: 0;
+  font: inherit;
+  text-transform: none;
+  color: #000;
+}
+
+.greetingInput:focus {
+  box-shadow: 5px 5px 0 #000;
+}
+
+.greetingHint {
+  color: #4a4838;
+}
+
+.greetingError {
+  color: #b5111b;
+}
+
 .thread {
   flex: 1;
   min-height: 0;

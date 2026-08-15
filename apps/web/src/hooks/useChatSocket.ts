@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useSessionSocket } from '@/core/socket';
 import { useAuthStore } from '@/lib/auth-store';
-import type { Message, MessageType, PresenceEvent, TypingEvent } from '@/lib/types';
+import type { AuthUser, Message, MessageType, PresenceEvent, TypingEvent } from '@/lib/types';
 
 /** Everything a message can carry beyond its text. */
 export interface SendOptions {
@@ -76,16 +76,30 @@ export function useChatSocket(roomId: string | null, initialMessages: Message[] 
       });
     };
 
+    // Live messages carry a copy of their sender, so a rename has to be written
+    // into the ones already in the thread — refetching only fixes the history.
+    const onUserUpdated = (updated: AuthUser) => {
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.sender?.id === updated.id
+            ? { ...message, sender: { ...message.sender, ...updated } }
+            : message,
+        ),
+      );
+    };
+
     socket.on('connect', join);
     socket.on('message:new', onMessage);
     socket.on('presence:typing', onTyping);
     socket.on('presence:update', onPresence);
+    socket.on('user:updated', onUserUpdated);
 
     return () => {
       socket.off('connect', join);
       socket.off('message:new', onMessage);
       socket.off('presence:typing', onTyping);
       socket.off('presence:update', onPresence);
+      socket.off('user:updated', onUserUpdated);
     };
   }, [socket, roomId]);
 

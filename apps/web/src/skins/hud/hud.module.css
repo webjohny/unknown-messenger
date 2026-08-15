@@ -316,6 +316,53 @@
   color: #4fe3ff;
 }
 
+/* The guest's own callsign, editable in place — a readout under the header. */
+.greeting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  padding: 9px 20px;
+  border-bottom: 1px solid rgba(79, 227, 255, 0.22);
+  background: rgba(79, 227, 255, 0.05);
+  font-family: 'Share Tech Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #5b8298;
+}
+
+.greetingLabel {
+  color: #4fe3ff;
+}
+
+.greetingInput {
+  width: 14ch;
+  max-width: 100%;
+  padding: 5px 9px;
+  border: 1px solid rgba(79, 227, 255, 0.4);
+  background: rgba(4, 7, 15, 0.8);
+  outline: 0;
+  font: inherit;
+  letter-spacing: 1px;
+  text-transform: none;
+  color: #d8f4ff;
+}
+
+.greetingInput:focus {
+  border-color: #4fe3ff;
+  box-shadow: 0 0 12px rgba(79, 227, 255, 0.35);
+}
+
+.greetingHint {
+  color: #5b8298;
+}
+
+.greetingError {
+  color: #ff9b52;
+}
+
 .thread {
   flex: 1;
   min-height: 0;

@@ -546,6 +546,54 @@
   background: #fdeaee;
 }
 
+/* The guest's own label, editable in place — a row under the panel head. */
+.greeting {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 26px 0 30px;
+  padding: 8px 12px;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 12px;
+  background: rgba(238, 240, 246, 0.7);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: #a3aac2;
+}
+
+.greetingLabel {
+  color: #6366f1;
+}
+
+.greetingInput {
+  width: 14ch;
+  max-width: 100%;
+  padding: 5px 9px;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 8px;
+  background: #fff;
+  outline: none;
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: #2b3050;
+  user-select: text;
+}
+
+.greetingInput:focus {
+  border-color: #6366f1;
+}
+
+.greetingHint {
+  color: #a3aac2;
+}
+
+.greetingError {
+  color: #ea580c;
+}
+
 .thread {
   flex: 1;
   min-height: 0;

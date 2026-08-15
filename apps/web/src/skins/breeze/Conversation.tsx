@@ -1,10 +1,42 @@
 'use client';
 
-import { useRoomController } from '@/core';
+import { useIdentityController, useRoomController } from '@/core';
 
 import { CallStage } from './CallStage';
 import { IconBack, IconCall, IconHangUp, IconSend } from './icons';
 import css from './breeze.module.css';
+
+/**
+ * A guest arrives as `user3737`, which is a number and not a name. This is the
+ * line that lets them fix it without an account — typed over in place, saved on
+ * Enter or on the way out of the field.
+ */
+function Greeting() {
+  const me = useIdentityController();
+  if (!me.editable) return null;
+
+  return (
+    <div className={css.greeting}>
+      <span>Привіт,</span>
+      <input
+        className={css.greetingInput}
+        value={me.draft}
+        maxLength={me.maxLength}
+        disabled={me.pending}
+        aria-label="Ваше ім’я в чаті"
+        onChange={(event) => me.setDraft(event.target.value)}
+        onBlur={me.save}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+          if (event.key === 'Escape') me.cancel();
+        }}
+      />
+      <span className={me.error ? css.greetingError : css.greetingHint}>
+        {me.error ?? (me.pending ? 'Зберігаємо…' : me.dirty ? 'Enter — зберегти' : 'можна змінити')}
+      </span>
+    </div>
+  );
+}
 
 /** The right-hand pane: toolbar, transcript, composer — the 2003 arrangement. */
 export function Conversation({ roomId }: { roomId: string }) {
@@ -34,6 +66,8 @@ export function Conversation({ roomId }: { roomId: string }) {
       {room.inCall && <CallStage roomId={roomId} onEnd={room.toggleCall} />}
 
       <div className={css.conversation}>
+        <Greeting />
+
         <div className={css.transcript}>
           <p className={css.systemLine}>— Розмову розпочато —</p>
 

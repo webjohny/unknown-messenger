@@ -7,6 +7,7 @@ import {
   initials,
   useAuthController,
   useChatListController,
+  useIdentityController,
   useInviteAcceptController,
   useInviteController,
   useRoomController,
@@ -305,6 +306,8 @@ function Panel({
         </span>
       </div>
 
+      <Greeting />
+
       {room.inCall && <CallDeck roomId={roomId} onEnd={room.toggleCall} />}
 
       <div className={css.thread}>
@@ -328,7 +331,9 @@ function Panel({
           ) : (
             <div key={message.id} className={`${css.msg} ${message.own ? css.msgOwn : ''}`}>
               <div className={css.msgMeta}>
-                {message.own ? 'YOU' : message.sender.username.toUpperCase()} · {message.time}
+                {/* The display name, not the handle: a guest who renames itself
+                    has to appear under the new one here too. */}
+                {message.own ? 'YOU' : message.sender.displayName.toUpperCase()} · {message.time}
               </div>
               <div className={css.bubble}>{message.body}</div>
             </div>
@@ -364,6 +369,38 @@ function Panel({
           SEND
         </button>
       </form>
+    </div>
+  );
+}
+
+/**
+ * A guest is issued `user3737` — a serial, not a name. This row is where the
+ * node gets relabelled, with no account behind it.
+ */
+function Greeting() {
+  const me = useIdentityController();
+  if (!me.editable) return null;
+
+  return (
+    <div className={css.greeting}>
+      <span className={css.greetingLabel}>YOU ARE</span>
+      <input
+        className={css.greetingInput}
+        value={me.draft}
+        maxLength={me.maxLength}
+        disabled={me.pending}
+        aria-label="Ваше ім’я в чаті"
+        onChange={(event) => me.setDraft(event.target.value)}
+        onBlur={me.save}
+        onPointerDown={(event) => event.stopPropagation()}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') event.currentTarget.blur();
+          if (event.key === 'Escape') me.cancel();
+        }}
+      />
+      <span className={me.error ? css.greetingError : css.greetingHint}>
+        {me.error ?? (me.pending ? 'SAVING…' : me.dirty ? 'ENTER TO SAVE' : 'EDITABLE')}
+      </span>
     </div>
   );
 }
