@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { CallSessionProvider } from '@/core/call-session';
+import { ChatPlaybackProvider } from '@/core/chat-playback';
 import { SessionSocketProvider } from '@/core/socket';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -26,8 +27,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={client}>
       <SessionSocketProvider>
         {/* Above the skin on purpose: a skin swap rebuilds everything below it,
-            and a live call must not be part of what gets rebuilt. */}
-        <CallSessionProvider>{children}</CallSessionProvider>
+            and neither a live call nor a take in progress may be part of what
+            gets rebuilt. */}
+        <CallSessionProvider>
+          <ChatPlaybackProvider>{children}</ChatPlaybackProvider>
+        </CallSessionProvider>
       </SessionSocketProvider>
     </QueryClientProvider>
   );

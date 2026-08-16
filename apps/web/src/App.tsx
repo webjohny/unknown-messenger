@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import {
+  ChatPlaybackPanel,
   useCallSession,
   useGuestHomeRedirect,
   useNavigation,
@@ -60,5 +61,12 @@ export function App() {
         ? { name: 'room', roomId }
         : { name: 'home' };
 
-  return <SkinEngine view={view} />;
+  return (
+    <>
+      <SkinEngine view={view} />
+      {/* Only where there is a conversation to replay. It is not part of the
+          skin and never lands in a take — it hides itself the moment one starts. */}
+      {view.name === 'room' && <ChatPlaybackPanel />}
+    </>
+  );
 }

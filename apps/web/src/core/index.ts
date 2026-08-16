@@ -3,10 +3,16 @@
  * decides how it *looks* does. Skins import from `@/core` only — they never
  * import each other, and no module outside a skin may pass it a class name, a
  * style object or a colour.
+ *
+ * One module breaks that rule on purpose: `chat-playback` draws its own panel,
+ * because it is not part of the messenger. It is the instrument used to film the
+ * messenger, it belongs to no skin, and it is off the screen before a single
+ * frame is recorded. Anything else that wants a look still has to be a skin.
  */
 
 export { SessionSocketProvider, useSessionSocket } from './socket';
 export { CallSessionProvider, useCallSession } from './call-session';
+export { ChatPlaybackProvider, ChatPlaybackPanel, useChatPlayback } from './chat-playback';
 export { AppLink, useNavigation } from './navigation';
 export { useSessionController } from './useSessionController';
 export { useAuthController } from './useAuthController';
@@ -37,6 +43,7 @@ export type { InviteController } from './useInviteController';
 export type { InviteAcceptController, InviteAcceptStatus } from './useInviteAcceptController';
 export type { RoomController, CallNotice } from './useRoomController';
 export type { CallSession } from './call-session';
+export type { ChatPlayback, PlaybackCue, PlaybackOptions } from './chat-playback';
 export type { Navigation } from './navigation';
 export type { CallController, CallControls, CallStage } from './useCallController';
 export type { CallExpansion } from './useCallExpansion';

@@ -8,6 +8,7 @@ import { peerOf, roomTitle } from '@/lib/room-display';
 import type { AuthUser, Message } from '@/lib/types';
 
 import { useCallSession } from './call-session';
+import { useChatPlayback, type PlaybackCue } from './chat-playback';
 
 import { useNavigation } from './navigation';
 
@@ -110,9 +111,47 @@ export function useRoomController(roomId: string): RoomController {
     return [...byId.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }, [history.data, messages]);
 
+  const allMessages = useMemo<RoomMessage[]>(
+    () =>
+      withCallNotices(timeline).map(({ message, call: notice }) => ({
+        ...message,
+        own: message.senderId === user?.id,
+        time: new Date(message.createdAt).toLocaleTimeString('uk-UA', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        call: notice,
+      })),
+    [timeline, user?.id],
+  );
+
+  // Playback replays the tail of the thread for the camera. It only ever hides
+  // lines that are already here, so a skin needs to know nothing about it: it
+  // renders `messages` and `typing` exactly as before.
+  const playback = useChatPlayback();
+  const { sync: syncPlayback } = playback;
+
+  const cues = useMemo<PlaybackCue[]>(
+    () =>
+      allMessages.map((message) => ({
+        length: message.body.length,
+        // A call notice is not typed by anyone, so nobody should appear to be
+        // typing it.
+        author: message.call ? null : (message.sender?.displayName ?? null),
+      })),
+    [allMessages],
+  );
+
+  useEffect(() => syncPlayback(roomId, cues), [roomId, cues, syncPlayback]);
+
+  const visibleMessages = useMemo(
+    () => (playback.hidden > 0 ? allMessages.slice(0, allMessages.length - playback.hidden) : allMessages),
+    [allMessages, playback.hidden],
+  );
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [timeline.length]);
+  }, [visibleMessages.length]);
 
   const send = () => {
     if (!draft.trim()) return;
@@ -148,18 +187,12 @@ export function useRoomController(roomId: string): RoomController {
   return {
     title: room ? roomTitle(room, user?.id) : 'Завантаження…',
     peer: room ? peerOf(room, user?.id) : null,
-    messages: withCallNotices(timeline).map(({ message, call }) => ({
-      ...message,
-      own: message.senderId === user?.id,
-      time: new Date(message.createdAt).toLocaleTimeString('uk-UA', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      call,
-    })),
+    messages: visibleMessages,
     loadingHistory: history.isLoading,
     connected,
-    typing: typingUsers,
+    // During a take the indicator belongs to whoever is about to "send" the next
+    // line; the real one would be empty anyway, since nobody is really typing.
+    typing: playback.typingName ? [playback.typingName] : typingUsers,
     draft,
     setDraft: (value) => {
       setDraft(value);
