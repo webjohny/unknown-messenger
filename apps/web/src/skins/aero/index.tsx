@@ -1,12 +1,9 @@
-'use client';
-
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 import {
+  AppLink,
   CallOverlay,
   CallRoot,
-  VideoTrack,
   initials,
   isTrackReference,
   useAuthController,
@@ -21,6 +18,7 @@ import {
   useInviteController,
   useRoomController,
   useSessionController,
+  VideoTrack,
 } from '@/core';
 import type { SkinManifest, SkinProps } from '@/skin-engine/contract';
 import { useSkinEngine } from '@/skin-engine';
@@ -199,7 +197,7 @@ function Contacts({ activeRoomId }: { activeRoomId?: string }) {
         )}
 
         {list.chats.map((chat) => (
-          <Link
+          <AppLink
             key={chat.id}
             href={chat.href ?? '#'}
             className={`${css.row} ${chat.id === activeRoomId ? css.rowActive : ''}`}
@@ -209,7 +207,7 @@ function Contacts({ activeRoomId }: { activeRoomId?: string }) {
               <span className={css.rowName}>{chat.name}</span>
               <span className={css.rowMeta}>{chat.subtitle}</span>
             </span>
-          </Link>
+          </AppLink>
         ))}
 
         {list.searching && (
@@ -300,7 +298,7 @@ function Conversation({ roomId }: { roomId: string }) {
 
       <Greeting />
 
-      {room.inCall && <Call roomId={roomId} onEnd={room.toggleCall} />}
+      {room.inCall && <Call roomId={roomId} />}
 
       <div className={css.thread}>
         {room.loadingHistory && <p className={css.note}>Завантаження історії…</p>}
@@ -361,7 +359,7 @@ function Conversation({ roomId }: { roomId: string }) {
   );
 }
 
-function Call({ roomId, onEnd }: { roomId: string; onEnd: () => void }) {
+function Call({ roomId }: { roomId: string }) {
   const call = useCallController(roomId);
 
   if (call.connecting) return <p className={css.note}>Підключення…</p>;
@@ -369,14 +367,7 @@ function Call({ roomId, onEnd }: { roomId: string; onEnd: () => void }) {
   if (!call.connection) return null;
 
   return (
-    <CallRoot
-      connection={call.connection}
-      className={css.call}
-      onDisconnected={() => {
-        void call.leave();
-        onEnd();
-      }}
-    >
+    <CallRoot className={css.call}>
       <Tiles />
       {/* Субтитри поки вимкнені: <Subtitles /> */}
     </CallRoot>

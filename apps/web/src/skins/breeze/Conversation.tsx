@@ -1,5 +1,3 @@
-'use client';
-
 import { useIdentityController, useRoomController } from '@/core';
 
 import { CallStage } from './CallStage';
@@ -63,7 +61,7 @@ export function Conversation({ roomId }: { roomId: string }) {
         </button>
       </div>
 
-      {room.inCall && <CallStage roomId={roomId} onEnd={room.toggleCall} />}
+      {room.inCall && <CallStage roomId={roomId} />}
 
       <div className={css.conversation}>
         <Greeting />

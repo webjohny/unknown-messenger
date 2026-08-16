@@ -1,8 +1,4 @@
-'use client';
-
 import {
-  LiveKitRoom,
-  RoomAudioRenderer,
   VideoTrack,
   isTrackReference,
   useLocalParticipant,
@@ -10,9 +6,11 @@ import {
   type TrackReferenceOrPlaceholder,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
+import { useMemo } from 'react';
 
 import { useCaptions, type CaptionLine } from '@/hooks/useCaptions';
-import { useLivekitRoom } from '@/hooks/useLivekitRoom';
+
+import { useCallSession } from './call-session';
 
 export interface CallController {
   connecting: boolean;
@@ -22,41 +20,41 @@ export interface CallController {
   leave: () => Promise<void>;
 }
 
+/**
+ * A read-only window onto the app's one call session, narrowed to a single
+ * room. It never opens a call: joining is the room controller's business, so
+ * that a skin swap re-reading this state cannot start or drop anything.
+ */
 export function useCallController(roomId: string): CallController {
-  const { connection, loading, error, leave } = useLivekitRoom(roomId);
-  return { connecting: loading, error, connection, leave };
+  const session = useCallSession();
+  const active = session.roomId === roomId;
+  const { leave } = session;
+
+  return useMemo(
+    () => ({
+      connecting: active && session.connecting,
+      error: active ? session.error : null,
+      connection: active ? session.connection : null,
+      leave: async () => leave(),
+    }),
+    [active, session.connecting, session.error, session.connection, leave],
+  );
 }
 
 /**
- * The call's plumbing: a LiveKit session plus audio playback, and nothing else.
- * It has no look of its own — `className` is here so the skin that renders it
- * can style its own container, which is the only styling anyone is allowed to do.
+ * The box the call is drawn in, and nothing else — the LiveKit session itself
+ * lives in `CallSessionProvider`, above every skin. It has no look of its own:
+ * `className` is here so the skin that renders it can style its own container,
+ * which is the only styling anyone is allowed to do.
  */
 export function CallRoot({
-  connection,
   className,
-  onDisconnected,
   children,
 }: {
-  connection: { token: string; url: string };
   className?: string;
-  onDisconnected?: () => void;
   children: React.ReactNode;
 }) {
-  return (
-    <LiveKitRoom
-      token={connection.token}
-      serverUrl={connection.url}
-      connect
-      audio
-      video
-      onDisconnected={onDisconnected}
-      className={className}
-    >
-      {children}
-      <RoomAudioRenderer />
-    </LiveKitRoom>
-  );
+  return <div className={className}>{children}</div>;
 }
 
 export type CallStage = TrackReferenceOrPlaceholder[];

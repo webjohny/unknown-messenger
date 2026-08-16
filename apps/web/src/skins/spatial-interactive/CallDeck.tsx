@@ -1,5 +1,3 @@
-'use client';
-
 import {
   CallOverlay,
   CallRoot,
@@ -15,7 +13,7 @@ import {
 import css from './spatial-interactive.module.css';
 
 /** The call docks inside the floating panel, above the thread. */
-export function CallDeck({ roomId, onEnd }: { roomId: string; onEnd: () => void }) {
+export function CallDeck({ roomId }: { roomId: string }) {
   const call = useCallController(roomId);
 
   if (call.connecting) return <p className={css.note}>OPENING LINK…</p>;
@@ -23,14 +21,7 @@ export function CallDeck({ roomId, onEnd }: { roomId: string; onEnd: () => void 
   if (!call.connection) return null;
 
   return (
-    <CallRoot
-      connection={call.connection}
-      className={css.call}
-      onDisconnected={() => {
-        void call.leave();
-        onEnd();
-      }}
-    >
+    <CallRoot className={css.call}>
       <Tiles />
       {/* Субтитри поки вимкнені: <Subtitles /> */}
     </CallRoot>

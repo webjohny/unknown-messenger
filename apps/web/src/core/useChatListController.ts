@@ -1,7 +1,4 @@
-'use client';
-
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { useUserSearch } from '@/hooks/useUserSearch';
@@ -11,6 +8,8 @@ import { roomTitle, peerOf } from '@/lib/room-display';
 import type { AuthUser, Message, Room } from '@/lib/types';
 
 import { useSessionSocket } from './socket';
+
+import { useNavigation } from './navigation';
 
 /** One line in a skin's sidebar, already resolved to display data. */
 export interface ChatListEntry {
@@ -44,7 +43,7 @@ export interface ChatListController {
 }
 
 export function useChatListController(): ChatListController {
-  const router = useRouter();
+  const nav = useNavigation();
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
 
@@ -97,7 +96,7 @@ export function useChatListController(): ChatListController {
     onSuccess: async (room: Room) => {
       await queryClient.invalidateQueries({ queryKey: ['rooms'] });
       setTerm('');
-      router.push(`/room/${room.id}`);
+      nav.push(`/room/${room.id}`);
     },
   });
 
@@ -115,7 +114,7 @@ export function useChatListController(): ChatListController {
         avatarUrl: peer?.avatarUrl ?? null,
         preview: toPreview(room, user?.id),
         href: `/room/${room.id}`,
-        open: () => router.push(`/room/${room.id}`),
+        open: () => nav.push(`/room/${room.id}`),
       };
     });
 

@@ -1,12 +1,11 @@
-'use client';
-
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import type { AuthTokens } from '@/lib/types';
+
+import { useNavigation } from './navigation';
 
 export interface InviteController {
   /**
@@ -28,7 +27,7 @@ export interface InviteController {
  * decides where to put it; this decides what it does.
  */
 export function useInviteController(): InviteController {
-  const router = useRouter();
+  const { push } = useNavigation();
   const queryClient = useQueryClient();
   const { setSession, setUser } = useAuthStore();
 
@@ -62,13 +61,13 @@ export function useInviteController(): InviteController {
       void copy(invite.url);
 
       await queryClient.invalidateQueries({ queryKey: ['rooms'] });
-      router.push(`/room/${invite.roomId}`);
+      push(`/room/${invite.roomId}`);
     } catch (err) {
       setError(readableError((err as Error).message));
     } finally {
       setPending(false);
     }
-  }, [copy, queryClient, router, setSession, setUser]);
+  }, [copy, queryClient, push, setSession, setUser]);
 
   return { create, link, copied, copy: () => copy(), pending, error };
 }

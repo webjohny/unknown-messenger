@@ -1,5 +1,3 @@
-'use client';
-
 import {
   CallOverlay,
   CallRoot,
@@ -16,7 +14,7 @@ import { IconCam, IconMic } from './icons';
 import css from './breeze.module.css';
 
 /** The call as a docked "video window" inside the conversation pane. */
-export function CallStage({ roomId, onEnd }: { roomId: string; onEnd: () => void }) {
+export function CallStage({ roomId }: { roomId: string }) {
   const call = useCallController(roomId);
 
   if (call.connecting) return <div className={css.callStage}>Підключення до кімнати…</div>;
@@ -24,14 +22,7 @@ export function CallStage({ roomId, onEnd }: { roomId: string; onEnd: () => void
   if (!call.connection) return null;
 
   return (
-    <CallRoot
-      connection={call.connection}
-      className={css.callStage}
-      onDisconnected={() => {
-        void call.leave();
-        onEnd();
-      }}
-    >
+    <CallRoot className={css.callStage}>
       <Tiles />
     </CallRoot>
   );

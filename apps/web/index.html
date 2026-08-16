@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <!-- viewport-fit=cover is what makes env(safe-area-inset-*) resolve to
+         anything but zero, and every skin pads itself with those. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Unknown Messenger</title>
+    <meta name="description" content="Відеодзвінки, чат і живі AI-субтитри" />
+    <!-- Loaded before the bundle and never hashed: this is the seam where a
+         built image learns which backend it is talking to. -->
+    <script src="/config.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

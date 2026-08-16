@@ -1,5 +1,3 @@
-'use client';
-
 import {
   CallOverlay,
   CallRoot,
@@ -15,7 +13,7 @@ import {
 import { GLYPH } from './glyphs';
 import css from './terminal.module.css';
 
-export function CallPane({ roomId, onEnd }: { roomId: string; onEnd: () => void }) {
+export function CallPane({ roomId }: { roomId: string }) {
   const call = useCallController(roomId);
 
   if (call.connecting) return <p className={css.system}>* opening audio/video link…</p>;
@@ -23,14 +21,7 @@ export function CallPane({ roomId, onEnd }: { roomId: string; onEnd: () => void 
   if (!call.connection) return null;
 
   return (
-    <CallRoot
-      connection={call.connection}
-      className={css.call}
-      onDisconnected={() => {
-        void call.leave();
-        onEnd();
-      }}
-    >
+    <CallRoot className={css.call}>
       <Tiles />
       {/* Субтитри поки вимкнені: <Subtitles /> */}
     </CallRoot>

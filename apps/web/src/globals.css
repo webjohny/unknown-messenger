@@ -11,7 +11,11 @@
 }
 
 html,
-body {
+body,
+/* The mount point is a box the skin does not know about, so it has to pass the
+   viewport height straight through — a skin that asks for 100% would otherwise
+   measure an element that had collapsed to its content. */
+#root {
   height: 100%;
 }
 

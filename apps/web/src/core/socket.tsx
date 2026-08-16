@@ -1,5 +1,3 @@
-'use client';
-
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';

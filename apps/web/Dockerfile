@@ -1,29 +1,18 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
 RUN npm ci
-COPY tsconfig.json next.config.mjs next-env.d.ts ./
+COPY tsconfig.json vite.config.ts index.html ./
 COPY public ./public
 COPY src ./src
-# NEXT_PUBLIC_* is inlined into the client bundle at build time, so the public
-# URLs have to be known here — not at container start.
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_WS_URL
-ARG NEXT_PUBLIC_LIVEKIT_URL
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
-ENV NEXT_PUBLIC_LIVEKIT_URL=$NEXT_PUBLIC_LIVEKIT_URL
+# No build args: the bundle is environment-agnostic. Which backend it talks to
+# is decided at container start, in /config.js — so this image is built once and
+# runs anywhere.
 RUN npm run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
-COPY next.config.mjs ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-EXPOSE 3000
-CMD ["./node_modules/.bin/next", "start", "-p", "3000"]
+FROM nginx:1.27-alpine AS runner
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker-entrypoint.sh /docker-entrypoint.d/40-messenger-config.sh
+RUN chmod +x /docker-entrypoint.d/40-messenger-config.sh
+EXPOSE 80

@@ -1,6 +1,3 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import {
@@ -10,6 +7,7 @@ import {
   useIdentityController,
   useInviteAcceptController,
   useInviteController,
+  useNavigation,
   useRoomController,
   useSessionController,
   useSessionSocket,
@@ -85,7 +83,7 @@ type Canvas = ReturnType<typeof useCanvas>;
 
 function Mesh({ canvas, activeRoomId }: { canvas: Canvas; activeRoomId: string | null }) {
   const list = useChatListController();
-  const router = useRouter();
+  const nav = useNavigation();
 
   const nodes = list.chats.map((chat, index) => ({
     chat,
@@ -107,7 +105,7 @@ function Mesh({ canvas, activeRoomId }: { canvas: Canvas; activeRoomId: string |
   const close = () => {
     if (closing) return;
     setClosing(true);
-    setTimeout(() => router.push('/'), EXIT_MS);
+    setTimeout(() => nav.push('/'), EXIT_MS);
   };
 
   // Whoever transmitted last carries the aura and the running dots.
@@ -308,7 +306,7 @@ function Panel({
 
       <Greeting />
 
-      {room.inCall && <CallDeck roomId={roomId} onEnd={room.toggleCall} />}
+      {room.inCall && <CallDeck roomId={roomId} />}
 
       <div className={css.thread}>
         {room.loadingHistory && <p className={css.system}>REPLAYING BUFFER…</p>}

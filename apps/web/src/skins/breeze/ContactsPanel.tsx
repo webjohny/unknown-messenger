@@ -1,8 +1,9 @@
-'use client';
 
-import Link from 'next/link';
-
-import { useChatListController, useInviteController } from '@/core';
+import {
+  AppLink,
+  useChatListController,
+  useInviteController,
+} from '@/core';
 
 import { IconContacts, IconLink, IconSearch } from './icons';
 import css from './breeze.module.css';
@@ -54,14 +55,14 @@ export function ContactsPanel({ activeRoomId }: { activeRoomId?: string }) {
         )}
 
         {list.chats.map((chat) => (
-          <Link
+          <AppLink
             key={chat.id}
             href={chat.href ?? '#'}
             className={`${css.contact} ${chat.id === activeRoomId ? css.contactActive : ''}`}
           >
             <span className={css.dot} />
             <span className={css.contactName}>{chat.name}</span>
-          </Link>
+          </AppLink>
         ))}
 
         {list.searching && (

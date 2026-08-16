@@ -1,7 +1,4 @@
-'use client';
-
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useChatSocket } from '@/hooks/useChatSocket';
@@ -9,6 +6,10 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { peerOf, roomTitle } from '@/lib/room-display';
 import type { AuthUser, Message } from '@/lib/types';
+
+import { useCallSession } from './call-session';
+
+import { useNavigation } from './navigation';
 
 /**
  * A call announcement posted into the thread. Skins draw it instead of a
@@ -56,16 +57,18 @@ export interface RoomController {
 }
 
 export function useRoomController(roomId: string): RoomController {
-  const router = useRouter();
+  const nav = useNavigation();
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
 
-  const [inCall, setInCall] = useState(false);
+  // The call itself lives above the skin, so that changing skin — which
+  // rebuilds this hook and everything around it — cannot drop it. That makes
+  // "am I in a call" a question about the session, not local state.
+  const call = useCallSession();
+  const inCall = call.roomId === roomId;
+
   const [draft, setDraft] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
-  // Only the side that opened the session closes it in the thread, and only
-  // once: LiveKit's disconnect callback fires again while we are tearing down.
-  const startedAt = useRef<number | null>(null);
 
   const rooms = useQuery({
     queryKey: ['rooms'],
@@ -119,26 +122,28 @@ export function useRoomController(roomId: string): RoomController {
   };
 
   const startCall = () => {
-    setInCall(true);
-    startedAt.current = Date.now();
+    call.start(roomId);
     sendMessage('Відеосесія розпочалась', {
       type: 'SYSTEM',
       meta: { kind: 'call.started' },
     });
   };
 
-  const endCall = () => {
-    setInCall(false);
-    const opened = startedAt.current;
-    startedAt.current = null;
-    if (opened === null) return;
-
-    const ms = Date.now() - opened;
-    sendMessage('Відеосесію завершено', {
-      type: 'SYSTEM',
-      meta: { kind: 'call.ended', durationMs: ms },
-    });
-  };
+  // Closing the thread's announcement is the session's cue, not the button's:
+  // a call also ends when LiveKit drops, and both have to read the same. Only
+  // the side that opened it gets a duration, and only that side reports.
+  const { onEnded } = call;
+  useEffect(
+    () =>
+      onEnded((durationMs) => {
+        if (durationMs === null) return;
+        sendMessage('Відеосесію завершено', {
+          type: 'SYSTEM',
+          meta: { kind: 'call.ended', durationMs },
+        });
+      }),
+    [onEnded, sendMessage],
+  );
 
   return {
     title: room ? roomTitle(room, user?.id) : 'Завантаження…',
@@ -162,9 +167,9 @@ export function useRoomController(roomId: string): RoomController {
     },
     send,
     inCall,
-    toggleCall: () => (inCall ? endCall() : startCall()),
-    joinCall: () => setInCall(true),
-    leave: () => router.push('/'),
+    toggleCall: () => (inCall ? call.leave() : startCall()),
+    joinCall: () => call.join(roomId),
+    leave: () => nav.push('/'),
     bottomRef,
   };
 }

@@ -1,5 +1,3 @@
-'use client';
-
 import { useDataChannel } from '@livekit/components-react';
 import { useEffect, useState } from 'react';
 

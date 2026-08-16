@@ -1,12 +1,9 @@
-'use client';
-
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 import {
+  AppLink,
   CallOverlay,
   CallRoot,
-  VideoTrack,
   isTrackReference,
   useAuthController,
   useCallController,
@@ -20,6 +17,7 @@ import {
   useInviteController,
   useRoomController,
   useSessionController,
+  VideoTrack,
 } from '@/core';
 import type { SkinManifest, SkinProps } from '@/skin-engine/contract';
 import { useSkinEngine } from '@/skin-engine';
@@ -195,13 +193,13 @@ function Stations({ activeRoomId }: { activeRoomId?: string }) {
         {!list.loadingChats && list.chats.length === 0 && <p className={css.note}>static only</p>}
 
         {list.chats.map((chat) => (
-          <Link
+          <AppLink
             key={chat.id}
             href={chat.href ?? '#'}
             className={`${css.row} ${chat.id === activeRoomId ? css.rowActive : ''}`}
           >
             <span className={css.rowName}>{chat.name}</span>
-          </Link>
+          </AppLink>
         ))}
 
         {list.searching && (
@@ -289,7 +287,7 @@ function Feed({ roomId }: { roomId: string }) {
 
       <Greeting />
 
-      {room.inCall && <Call roomId={roomId} onEnd={room.toggleCall} />}
+      {room.inCall && <Call roomId={roomId} />}
 
       <div className={css.feed}>
         {room.loadingHistory && <p className={css.note}>rewinding tape…</p>}
@@ -354,7 +352,7 @@ function Feed({ roomId }: { roomId: string }) {
   );
 }
 
-function Call({ roomId, onEnd }: { roomId: string; onEnd: () => void }) {
+function Call({ roomId }: { roomId: string }) {
   const call = useCallController(roomId);
 
   if (call.connecting) return <p className={css.note}>opening feed…</p>;
@@ -362,14 +360,7 @@ function Call({ roomId, onEnd }: { roomId: string; onEnd: () => void }) {
   if (!call.connection) return null;
 
   return (
-    <CallRoot
-      connection={call.connection}
-      className={css.call}
-      onDisconnected={() => {
-        void call.leave();
-        onEnd();
-      }}
-    >
+    <CallRoot className={css.call}>
       <Tiles />
       {/* Субтитри поки вимкнені: <Subtitles /> */}
     </CallRoot>

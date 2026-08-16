@@ -1,9 +1,7 @@
-'use client';
-
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 import type { SkinManifest, SkinView } from './contract';
-import { SKIN_COOKIE, SKIN_COOKIE_MAX_AGE } from './cookie';
+import { writeSkinCookie } from './cookie';
 import { DEFAULT_SKIN_ID, SKINS, SKIN_MANIFESTS, resolveSkinId, type SkinId } from './registry';
 
 interface SkinEngineValue {
@@ -17,9 +15,10 @@ interface SkinEngineValue {
 const SkinEngineContext = createContext<SkinEngineValue | null>(null);
 
 /**
- * Holds the chosen skin id. The id is mirrored into a cookie so the server
- * renders the same skin the browser will — with the skin owning the entire UI,
- * a wrong first paint is the whole screen, not a colour.
+ * Holds the chosen skin id, mirrored into a cookie so a reload comes back to
+ * the same app. With the skin owning the entire UI, a wrong first paint is the
+ * whole screen and not a colour — which is why the entry point reads that
+ * cookie before mounting rather than correcting itself afterwards.
  */
 export function SkinEngineProvider({
   initialSkinId,
@@ -33,7 +32,7 @@ export function SkinEngineProvider({
   const apply = useCallback((id: string) => {
     const next = resolveSkinId(id);
     setSkinId(next);
-    document.cookie = `${SKIN_COOKIE}=${next}; path=/; max-age=${SKIN_COOKIE_MAX_AGE}; samesite=lax`;
+    writeSkinCookie(next);
   }, []);
 
   const value = useMemo<SkinEngineValue>(

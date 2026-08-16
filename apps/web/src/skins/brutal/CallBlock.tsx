@@ -1,5 +1,3 @@
-'use client';
-
 import {
   CallOverlay,
   CallRoot,
@@ -15,7 +13,7 @@ import {
 import { IconCam, IconMic } from './icons';
 import css from './brutal.module.css';
 
-export function CallBlock({ roomId, onEnd }: { roomId: string; onEnd: () => void }) {
+export function CallBlock({ roomId }: { roomId: string }) {
   const call = useCallController(roomId);
 
   if (call.connecting) return <div className={css.note}>Dialling…</div>;
@@ -23,14 +21,7 @@ export function CallBlock({ roomId, onEnd }: { roomId: string; onEnd: () => void
   if (!call.connection) return null;
 
   return (
-    <CallRoot
-      connection={call.connection}
-      className={css.call}
-      onDisconnected={() => {
-        void call.leave();
-        onEnd();
-      }}
-    >
+    <CallRoot className={css.call}>
       <Grid />
       {/* Субтитри поки вимкнені: <Subtitles /> */}
     </CallRoot>

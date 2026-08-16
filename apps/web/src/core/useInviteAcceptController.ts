@@ -1,13 +1,12 @@
-'use client';
-
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import { api } from '@/lib/api';
 import { useAuthHydrated, useAuthStore } from '@/lib/auth-store';
 
 import { adoptSession } from './useInviteController';
+
+import { useNavigation } from './navigation';
 
 export type InviteAcceptStatus = 'joining' | 'failed';
 
@@ -23,7 +22,7 @@ export interface InviteAcceptController {
  * guest one on the way in.
  */
 export function useInviteAcceptController(token: string): InviteAcceptController {
-  const router = useRouter();
+  const { replace } = useNavigation();
   const queryClient = useQueryClient();
   const { setSession, setUser } = useAuthStore();
   const hydrated = useAuthHydrated();
@@ -47,13 +46,13 @@ export function useInviteAcceptController(token: string): InviteAcceptController
         if (session.tokens) await adoptSession(session.tokens, setSession, setUser);
 
         await queryClient.invalidateQueries({ queryKey: ['rooms'] });
-        router.replace(`/room/${session.roomId}`);
+        replace(`/room/${session.roomId}`);
       } catch (err) {
         setError(readableError((err as Error).message));
         setStatus('failed');
       }
     })();
-  }, [hydrated, token, router, queryClient, setSession, setUser]);
+  }, [hydrated, token, replace, queryClient, setSession, setUser]);
 
   return { status, error };
 }

@@ -1,6 +1,3 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import {
@@ -9,6 +6,7 @@ import {
   useIdentityController,
   useInviteAcceptController,
   useInviteController,
+  useNavigation,
   useRoomController,
   useSessionController,
 } from '@/core';
@@ -89,7 +87,7 @@ function StatusLine() {
 
 function ChannelIndex() {
   const list = useChatListController();
-  const router = useRouter();
+  const nav = useNavigation();
 
   return (
     <div className={css.screen}>
@@ -107,7 +105,7 @@ function ChannelIndex() {
             key={chat.id}
             type="button"
             className={css.entry}
-            onClick={() => router.push(chat.href ?? '/')}
+            onClick={() => nav.push(chat.href ?? '/')}
           >
             <span className={css.entryNum}>{GLYPH.channel}{String(index + 1).padStart(2, '0')}</span>
             <span className={css.entryName}>{chat.name}</span>
@@ -211,7 +209,7 @@ function ChannelLog({ roomId, onSkins }: { roomId: string; onSkins: () => void }
 
         <Greeting />
 
-        {room.inCall && <CallPane roomId={roomId} onEnd={room.toggleCall} />}
+        {room.inCall && <CallPane roomId={roomId} />}
 
         <div className={css.log}>
           {room.loadingHistory && <p className={css.system}>* loading backlog…</p>}
@@ -481,7 +479,7 @@ function InviteGate({ token }: { token: string }) {
 function FunctionKeys({ onSkins }: { onSkins: () => void }) {
   const { signedIn, logout } = useSessionController();
   const invite = useInviteController();
-  const router = useRouter();
+  const nav = useNavigation();
 
   // A key drawn on the strip has to answer to the key it names.
   useEffect(() => {
@@ -496,7 +494,7 @@ function FunctionKeys({ onSkins }: { onSkins: () => void }) {
 
   return (
     <div className={css.keys}>
-      <button type="button" className={css.key} onClick={() => router.push('/')}>
+      <button type="button" className={css.key} onClick={() => nav.push('/')}>
         F1
       </button>
       <span className={css.keyLabel}>INDEX</span>

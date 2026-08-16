@@ -1,9 +1,7 @@
-'use client';
-
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 import {
+  AppLink,
   initials,
   useAuthController,
   useChatListController,
@@ -177,14 +175,14 @@ function ContactsBlock({ activeRoomId }: { activeRoomId?: string }) {
           {!list.loadingChats && list.chats.length === 0 && <p className={css.note}>Empty</p>}
 
           {list.chats.map((chat) => (
-            <Link
+            <AppLink
               key={chat.id}
               href={chat.href ?? '#'}
               className={`${css.row} ${chat.id === activeRoomId ? css.rowActive : ''}`}
             >
               <span className={css.mark} />
               <span className={css.rowName}>{chat.name}</span>
-            </Link>
+            </AppLink>
           ))}
 
           {list.searching && (
@@ -300,7 +298,7 @@ function Thread({ roomId }: { roomId: string }) {
 
       <Greeting />
 
-      {room.inCall && <CallBlock roomId={roomId} onEnd={room.toggleCall} />}
+      {room.inCall && <CallBlock roomId={roomId} />}
 
       <div className={css.thread}>
         {room.loadingHistory && <p className={css.note}>Loading history…</p>}

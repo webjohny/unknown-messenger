@@ -1,12 +1,9 @@
-'use client';
-
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 import {
+  AppLink,
   CallOverlay,
   CallRoot,
-  VideoTrack,
   isTrackReference,
   useAuthController,
   useCallController,
@@ -20,6 +17,7 @@ import {
   useInviteController,
   useRoomController,
   useSessionController,
+  VideoTrack,
 } from '@/core';
 import type { SkinManifest, SkinProps } from '@/skin-engine/contract';
 import { useSkinEngine } from '@/skin-engine';
@@ -194,7 +192,7 @@ function Notebook({ activeRoomId }: { activeRoomId?: string }) {
         {!list.loadingChats && list.chats.length === 0 && <p className={css.note}>поки порожньо</p>}
 
         {list.chats.map((chat) => (
-          <Link
+          <AppLink
             key={chat.id}
             href={chat.href ?? '#'}
             className={`${css.row} ${chat.id === activeRoomId ? css.rowActive : ''}`}
@@ -204,7 +202,7 @@ function Notebook({ activeRoomId }: { activeRoomId?: string }) {
               <span className={css.rowName}>{chat.name}</span>
               <span className={css.rowMeta}>{chat.subtitle}</span>
             </span>
-          </Link>
+          </AppLink>
         ))}
 
         {list.searching && (
@@ -298,7 +296,7 @@ function Sheet({ roomId }: { roomId: string }) {
 
       <Greeting />
 
-      {room.inCall && <Call roomId={roomId} onEnd={room.toggleCall} />}
+      {room.inCall && <Call roomId={roomId} />}
 
       <div className={css.notes}>
         {room.loadingHistory && <p className={css.note}>шукаю старі записки…</p>}
@@ -359,7 +357,7 @@ function Sheet({ roomId }: { roomId: string }) {
   );
 }
 
-function Call({ roomId, onEnd }: { roomId: string; onEnd: () => void }) {
+function Call({ roomId }: { roomId: string }) {
   const call = useCallController(roomId);
 
   if (call.connecting) return <p className={css.note}>дзвоню…</p>;
@@ -367,14 +365,7 @@ function Call({ roomId, onEnd }: { roomId: string; onEnd: () => void }) {
   if (!call.connection) return null;
 
   return (
-    <CallRoot
-      connection={call.connection}
-      className={css.polaroid}
-      onDisconnected={() => {
-        void call.leave();
-        onEnd();
-      }}
-    >
+    <CallRoot className={css.polaroid}>
       <Tiles />
       {/* Субтитри поки вимкнені: <Subtitles /> */}
     </CallRoot>

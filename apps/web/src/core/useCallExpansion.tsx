@@ -1,5 +1,3 @@
-'use client';
-
 import { useCallback, useEffect, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 

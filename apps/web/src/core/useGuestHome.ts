@@ -1,11 +1,10 @@
-'use client';
-
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+
+import { useNavigation } from './navigation';
 
 /**
  * A guest owns exactly one thing: the anonymous room they were invited to. That
@@ -16,7 +15,7 @@ import { useAuthStore } from '@/lib/auth-store';
  * be skipped; pass false and the query never runs.
  */
 export function useGuestHomeRedirect(active: boolean): void {
-  const router = useRouter();
+  const { replace } = useNavigation();
   const isGuest = useAuthStore((s) => s.user?.isGuest ?? false);
 
   const enabled = active && isGuest;
@@ -25,6 +24,6 @@ export function useGuestHomeRedirect(active: boolean): void {
   useEffect(() => {
     // Newest first, as the API returns them: the room they just joined.
     const first = anon.data?.[0];
-    if (enabled && first) router.replace(`/room/${first.id}`);
-  }, [enabled, anon.data, router]);
+    if (enabled && first) replace(`/room/${first.id}`);
+  }, [enabled, anon.data, replace]);
 }
