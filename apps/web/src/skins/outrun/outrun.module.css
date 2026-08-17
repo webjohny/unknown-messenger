@@ -429,6 +429,39 @@
   text-align: right;
 }
 
+/* The author's way out of a line they regret. Hidden until the message is
+   pointed at: a delete control sitting on every message reads as part of what
+   was said. Coarse pointers have no hover to reveal it, so there it just is. */
+.erase {
+  margin-left: 8px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  font: inherit;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.msg:hover .erase,
+.erase:focus-visible {
+  opacity: 0.75;
+}
+
+.erase:hover {
+  color: #ff4d8d;
+  opacity: 1;
+  text-shadow: 0 0 8px #ff4d8d;
+}
+
+@media (pointer: coarse) {
+  .erase {
+    opacity: 0.55;
+  }
+}
+
 .msgBody {
   padding: 12px 15px;
   font-size: 15px;

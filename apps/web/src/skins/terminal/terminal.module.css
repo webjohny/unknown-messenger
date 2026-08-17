@@ -106,6 +106,37 @@
   white-space: pre-wrap;
 }
 
+/* The author's way out of a line they regret. Hidden until the line is pointed
+   at: a delete control on every row reads as part of the log itself. Coarse
+   pointers have no hover to reveal it, so there it just is. */
+.erase {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  line-height: 1;
+  color: #6f7fc8;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.line:hover .erase,
+.erase:focus-visible {
+  opacity: 1;
+}
+
+.erase:hover {
+  color: #ff5555;
+}
+
+@media (pointer: coarse) {
+  .erase {
+    opacity: 0.7;
+  }
+}
+
 .system {
   color: #6f7fc8;
 }

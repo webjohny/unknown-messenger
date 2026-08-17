@@ -98,6 +98,16 @@ export function Conversation({ roomId }: { roomId: string }) {
                   <div className={css.says}>
                     {message.sender.displayName} says:
                     <span className={css.time}>{message.time}</span>
+                    {message.canDelete && (
+                      <button
+                        type="button"
+                        className={css.erase}
+                        aria-label="Видалити повідомлення"
+                        onClick={() => room.deleteMessage(message.id)}
+                      >
+                        ×
+                      </button>
+                    )}
                   </div>
                   <div className={css.bubble}>{message.body}</div>
                 </div>

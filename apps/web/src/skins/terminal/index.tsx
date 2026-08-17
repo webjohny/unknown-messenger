@@ -240,6 +240,16 @@ function ChannelLog({ roomId, onSkins }: { roomId: string; onSkins: () => void }
                   &lt;{message.sender.displayName}&gt;
                 </span>
                 <span className={css.text}>{message.body}</span>
+                {message.canDelete && (
+                  <button
+                    type="button"
+                    className={css.erase}
+                    aria-label="Видалити повідомлення"
+                    onClick={() => room.deleteMessage(message.id)}
+                  >
+                    [del]
+                  </button>
+                )}
               </div>
             ),
           )}

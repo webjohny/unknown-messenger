@@ -35,6 +35,8 @@ export interface RoomMessage extends Message {
   time: string;
   /** Set when the message is a call announcement rather than something said. */
   call: CallNotice | null;
+  /** Whether this viewer may retire it — the author, and nobody else. */
+  canDelete: boolean;
 }
 
 export interface RoomController {
@@ -48,6 +50,8 @@ export interface RoomController {
   draft: string;
   setDraft: (value: string) => void;
   send: () => void;
+  /** Takes the message out of the thread for everyone. Only own messages. */
+  deleteMessage: (messageId: string) => void;
   inCall: boolean;
   toggleCall: () => void;
   /** Join a call somebody else started — announces nothing, just walks in. */
@@ -90,10 +94,8 @@ export function useRoomController(roomId: string): RoomController {
     enabled: Boolean(accessToken),
   });
 
-  const { connected, messages, typingUsers, sendMessage, setTyping } = useChatSocket(
-    roomId,
-    history.data ?? [],
-  );
+  const { connected, messages, deletedIds, typingUsers, sendMessage, deleteMessage, setTyping } =
+    useChatSocket(roomId, history.data ?? []);
 
   const room =
     rooms.data?.find((candidate) => candidate.id === roomId) ??
@@ -104,12 +106,16 @@ export function useRoomController(roomId: string): RoomController {
   // usually finishes after that — so the two have to be merged here or the
   // thread shows only what arrived live. Keyed by id, live copy wins: that is
   // what replaces an optimistic message with the server's echo.
+  // A deleted message has to be dropped after the merge, not before: the fetched
+  // history is a cache that still remembers it, so filtering one source alone
+  // would let the other one put it back.
   const timeline = useMemo(() => {
     const byId = new Map<string, Message>();
     for (const message of history.data ?? []) byId.set(message.id, message);
     for (const message of messages) byId.set(message.id, message);
+    for (const id of deletedIds) byId.delete(id);
     return [...byId.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  }, [history.data, messages]);
+  }, [history.data, messages, deletedIds]);
 
   const allMessages = useMemo<RoomMessage[]>(
     () =>
@@ -121,6 +127,10 @@ export function useRoomController(roomId: string): RoomController {
           minute: '2-digit',
         }),
         call: notice,
+        // A call announcement is written by the room, not by the person whose
+        // name is on it, and removing one would leave the other half of the pair
+        // hanging — so it is nobody's to delete.
+        canDelete: message.senderId === user?.id && !notice,
       })),
     [timeline, user?.id],
   );
@@ -199,6 +209,7 @@ export function useRoomController(roomId: string): RoomController {
       setTyping(value.length > 0);
     },
     send,
+    deleteMessage,
     inCall,
     toggleCall: () => (inCall ? call.leave() : startCall()),
     joinCall: () => call.join(roomId),

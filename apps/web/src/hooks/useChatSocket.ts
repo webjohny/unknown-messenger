@@ -13,9 +13,16 @@ export interface SendOptions {
 interface UseChatSocket {
   connected: boolean;
   messages: Message[];
+  /**
+   * Messages the server has retired. They are kept as ids rather than removed
+   * from `messages`, because the thread is a merge of this list and the fetched
+   * history — dropping one copy would leave the other one on screen.
+   */
+  deletedIds: Set<string>;
   typingUsers: string[];
   onlineUsers: Set<string>;
   sendMessage: (body: string, options?: SendOptions) => void;
+  deleteMessage: (messageId: string) => void;
   setTyping: (isTyping: boolean) => void;
 }
 
@@ -31,6 +38,7 @@ export function useChatSocket(roomId: string | null, initialMessages: Message[] 
   const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set());
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
 
@@ -40,6 +48,7 @@ export function useChatSocket(roomId: string | null, initialMessages: Message[] 
     // The socket outlives the room, so anything collected for the previous one
     // has to go or it bleeds into this room's thread.
     setMessages([]);
+    setDeletedIds(new Set());
     setTypingUsers([]);
 
     const join = () => socket.emit('room:join', { roomId });
@@ -55,6 +64,11 @@ export function useChatSocket(roomId: string | null, initialMessages: Message[] 
         if (withoutOptimistic.some((m) => m.id === message.id)) return withoutOptimistic;
         return [...withoutOptimistic, message];
       });
+    };
+
+    const onDeleted = (event: { roomId: string; messageId: string }) => {
+      if (event.roomId !== roomId) return;
+      setDeletedIds((prev) => new Set(prev).add(event.messageId));
     };
 
     const onTyping = (event: TypingEvent) => {
@@ -88,6 +102,7 @@ export function useChatSocket(roomId: string | null, initialMessages: Message[] 
 
     socket.on('connect', join);
     socket.on('message:new', onMessage);
+    socket.on('message:deleted', onDeleted);
     socket.on('presence:typing', onTyping);
     socket.on('presence:update', onPresence);
     socket.on('user:updated', onUserUpdated);
@@ -95,6 +110,7 @@ export function useChatSocket(roomId: string | null, initialMessages: Message[] 
     return () => {
       socket.off('connect', join);
       socket.off('message:new', onMessage);
+      socket.off('message:deleted', onDeleted);
       socket.off('presence:typing', onTyping);
       socket.off('presence:update', onPresence);
       socket.off('user:updated', onUserUpdated);
@@ -139,6 +155,35 @@ export function useChatSocket(roomId: string | null, initialMessages: Message[] 
     [socket, roomId, currentUser],
   );
 
+  /**
+   * Hides the message at once and asks the server after. A deletion the author
+   * has already decided on should not wait for a round trip to leave the screen;
+   * a refusal puts it back, and everyone else sees it go when the broadcast
+   * arrives.
+   */
+  const deleteMessage = useCallback(
+    (messageId: string) => {
+      if (!socket || !roomId) return;
+
+      setDeletedIds((prev) => new Set(prev).add(messageId));
+
+      socket.emit(
+        'message:delete',
+        { roomId, messageId },
+        (ack: { ok: boolean } | undefined) => {
+          if (ack?.ok) return;
+          console.error('[ws] delete rejected:', ack);
+          setDeletedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(messageId);
+            return next;
+          });
+        },
+      );
+    },
+    [socket, roomId],
+  );
+
   const setTyping = useCallback(
     (isTyping: boolean) => {
       if (!socket || !roomId) return;
@@ -156,5 +201,14 @@ export function useChatSocket(roomId: string | null, initialMessages: Message[] 
     [socket, roomId],
   );
 
-  return { connected, messages, typingUsers, onlineUsers, sendMessage, setTyping };
+  return {
+    connected,
+    messages,
+    deletedIds,
+    typingUsers,
+    onlineUsers,
+    sendMessage,
+    deleteMessage,
+    setTyping,
+  };
 }

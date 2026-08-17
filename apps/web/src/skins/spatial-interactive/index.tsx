@@ -332,6 +332,16 @@ function Panel({
                 {/* The display name, not the handle: a guest who renames itself
                     has to appear under the new one here too. */}
                 {message.own ? 'YOU' : message.sender.displayName.toUpperCase()} · {message.time}
+                {message.canDelete && (
+                  <button
+                    type="button"
+                    className={css.erase}
+                    aria-label="Видалити повідомлення"
+                    onClick={() => room.deleteMessage(message.id)}
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
               <div className={css.bubble}>{message.body}</div>
             </div>

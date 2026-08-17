@@ -85,9 +85,13 @@ export function useChatListController(): ChatListController {
 
     socket.on('room:created', refreshRooms);
     socket.on('message:new', patchPreview);
+    // A deletion cannot be patched the same way: if the line was the one on the
+    // card, only the server knows which message stands newest now.
+    socket.on('message:deleted', refreshRooms);
     return () => {
       socket.off('room:created', refreshRooms);
       socket.off('message:new', patchPreview);
+      socket.off('message:deleted', refreshRooms);
     };
   }, [socket, queryClient]);
 

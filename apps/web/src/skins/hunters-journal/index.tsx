@@ -368,6 +368,16 @@ function ThreadPage({ roomId }: { roomId: string }) {
             <div key={message.id} className={`${css.msg} ${message.own ? css.msgOwn : ''}`}>
               <span className={css.msgWho}>
                 {(message.own ? 'я' : message.sender.displayName).toUpperCase()} · {message.time}
+                {message.canDelete && (
+                  <button
+                    type="button"
+                    className={css.erase}
+                    aria-label="Видалити повідомлення"
+                    onClick={() => room.deleteMessage(message.id)}
+                  >
+                    ✕
+                  </button>
+                )}
               </span>
               <span className={css.msgText}>{message.body}</span>
             </div>

@@ -16,7 +16,7 @@ import { RedisService } from '../redis/redis.service';
 import { RoomsService, type RoomCreatedEvent } from '../rooms/rooms.service';
 import type { AppConfig } from '../config/configuration';
 import { ChatService } from './chat.service';
-import { RoomScopeDto, SendMessageDto, TypingDto, WS_EVENTS } from './dto/chat.dto';
+import { DeleteMessageDto, RoomScopeDto, SendMessageDto, TypingDto, WS_EVENTS } from './dto/chat.dto';
 import { WsAuthGuard } from './ws-auth.guard';
 
 interface AuthedSocket extends Socket {
@@ -98,6 +98,33 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     });
 
     return { ok: true, id: message.id, clientId: dto.clientId };
+  }
+
+  /**
+   * The refusal is answered, not thrown: the client hides the message the
+   * moment it is asked to, so it needs a definite "no" to put it back. An
+   * exception would only reach the socket's error channel, and the line would
+   * stay hidden until the next reload.
+   */
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('message:delete')
+  async onDeleteMessage(
+    @ConnectedSocket() client: AuthedSocket,
+    @MessageBody() dto: DeleteMessageDto,
+  ): Promise<{ ok: boolean }> {
+    try {
+      await this.chat.deleteMessage(client.data.userId, dto);
+    } catch (err) {
+      this.logger.warn(`Delete refused for ${client.data.userId}: ${String(err)}`);
+      return { ok: false };
+    }
+
+    this.server.to(`room:${dto.roomId}`).emit(WS_EVENTS.messageDeleted, {
+      roomId: dto.roomId,
+      messageId: dto.messageId,
+    });
+
+    return { ok: true };
   }
 
   @UseGuards(WsAuthGuard)

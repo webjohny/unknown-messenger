@@ -38,8 +38,18 @@ export class RoomScopeDto {
   roomId: string;
 }
 
+export class DeleteMessageDto {
+  @IsUUID('4')
+  roomId: string;
+
+  @IsUUID('4')
+  messageId: string;
+}
+
 export const WS_EVENTS = {
   message: 'message:new',
+  /** Carries only ids: the body is gone and must not travel a second time. */
+  messageDeleted: 'message:deleted',
   typing: 'presence:typing',
   presence: 'presence:update',
   roomCreated: 'room:created',

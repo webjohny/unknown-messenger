@@ -598,6 +598,38 @@
   color: #1a5fc8;
 }
 
+/* The author's way out of a line they regret. Hidden until the message is
+   pointed at: a delete control sitting on every bubble reads as part of what
+   was said. Coarse pointers have no hover to reveal it, so there it just is. */
+.erase {
+  margin-left: 6px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  font: inherit;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.message:hover .erase,
+.erase:focus-visible {
+  opacity: 0.75;
+}
+
+.erase:hover {
+  color: #c02626;
+  opacity: 1;
+}
+
+@media (pointer: coarse) {
+  .erase {
+    opacity: 0.55;
+  }
+}
+
 .bubble {
   display: inline-block;
   margin-top: 3px;

@@ -321,6 +321,16 @@ function Sheet({ roomId }: { roomId: string }) {
             <div key={message.id} className={`${css.msg} ${message.own ? css.msgOwn : ''}`}>
               <div className={css.msgWho}>
                 {message.sender.displayName}, {message.time}
+                {message.canDelete && (
+                  <button
+                    type="button"
+                    className={css.erase}
+                    aria-label="Видалити повідомлення"
+                    onClick={() => room.deleteMessage(message.id)}
+                  >
+                    ×
+                  </button>
+                )}
               </div>
               <div className={css.msgText}>{message.body}</div>
             </div>
