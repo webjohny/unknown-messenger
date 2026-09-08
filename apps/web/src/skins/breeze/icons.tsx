@@ -80,6 +80,12 @@ export const IconCam = ({ on = true }: { on?: boolean }) => (
   </Glyph>
 );
 
+export const IconChevron = ({ direction = 'down' }: { direction?: 'down' | 'up' }) => (
+  <Glyph size={12}>
+    <path d={direction === 'down' ? 'M3 6l5 5 5-5' : 'M3 10l5-5 5 5'} />
+  </Glyph>
+);
+
 export const IconPalette = () => (
   <Glyph size={13}>
     <path d="M8 1.5a6.5 6.5 0 1 0 0 13c.9 0 1.5-.6 1.5-1.4 0-.7-.6-1.1-.6-1.7 0-.6.5-1.1 1.1-1.1h1.2A3.3 3.3 0 0 0 14.5 7c0-3-2.9-5.5-6.5-5.5Z" />

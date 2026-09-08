@@ -1236,47 +1236,132 @@
   background: rgba(6, 22, 46, 0.75);
 }
 
-/* The call blown up over the whole window: feeds stacked, controls on the seam */
+/* The call blown up over the whole window, Telegram-style: one-to-one gets a
+   full-bleed feed with my own video as a small window over it; group calls
+   get a grid. The toolbar docks to the bottom edge and can tuck itself away. */
 
 .expanded {
   position: fixed;
   inset: 0;
   z-index: 90;
   display: flex;
-  padding: 10px;
   background: rgba(3, 14, 32, 0.94);
 }
 
-.expandedStack {
+.mainVideo {
+  position: relative;
   flex: 1;
   min-width: 0;
+  min-height: 0;
+  background: #0b2444;
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: center;
-  /* Room at the foot for the control bar, which no longer has a seam to sit on. */
-  padding-bottom: clamp(56px, 11vh, 104px);
-  gap: 6px;
+  overflow: hidden;
 }
 
-.expandedTile {
-  composes: tile;
-  flex: 0 1 auto;
-  /* Bounded by the shorter side, so two squares always fit across. */
-  height: min(100%, calc(50vw - 40px));
-  aspect-ratio: 1;
+.mainVideo video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* My own feed, floating over the other person's — grabbed by the box itself
+   so the drag doesn't fight the <video> element underneath it. */
+.pip {
+  position: absolute;
+  right: 16px;
+  bottom: clamp(76px, 14vh, 120px);
+  width: 30vw;
+  max-width: 160px;
+  min-width: 96px;
+  aspect-ratio: 3 / 4;
+  border: 2px solid #2f7ff0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #06162e;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+  cursor: grab;
+  touch-action: none;
+  z-index: 2;
+}
+
+.pip:active {
+  cursor: grabbing;
+}
+
+.pip video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.groupGrid {
+  flex: 1;
+  min-width: 0;
   min-height: 0;
-  cursor: default;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-auto-rows: minmax(120px, 1fr);
+  align-content: center;
+  gap: 8px;
+  padding: 10px;
+  padding-bottom: clamp(72px, 13vh, 120px);
+  overflow-y: auto;
+}
+
+.groupTile {
+  position: relative;
+  background: #0b2444;
+  border: 1px solid #2f7ff0;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  aspect-ratio: 1;
+}
+
+.groupTile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.backBtn {
+  composes: tool;
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 2;
 }
 
 .expandedBar {
   composes: toolbar;
   position: absolute;
   left: 50%;
-  bottom: clamp(16px, 4vh, 40px);
+  bottom: 44px;
   transform: translateX(-50%);
-  z-index: 1;
+  z-index: 3;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Slides down under the bottom edge, out of the way — the toggle tab stays
+   put so there is always something to tap to bring it back. */
+.expandedBarHidden {
+  transform: translate(-50%, calc(100% + 60px));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toolbarToggle {
+  composes: tool;
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  z-index: 4;
 }
 
 .captions {
