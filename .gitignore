@@ -20,6 +20,5 @@ apps/media-ai-service/bin/
 !docker-compose.yml
 !docker-compose.*.yml
 
-.claude/
 themes/
 DEPLOY.md

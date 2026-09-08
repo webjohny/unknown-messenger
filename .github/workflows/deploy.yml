@@ -1,0 +1,84 @@
+# Деплой на cash-come (messenger.cash-come.com).
+#
+# Образи збираються на самому сервері, як і в ручному сценарії з DEPLOY.md:
+# реєстру немає, а тягнути ~1 ГБ шарів через GHCR на 2 vCPU / 4 GB вигоди не дає.
+# Раннер тут — тільки тригер: копіює scripts/deploy.sh по scp і виконує його.
+name: deploy
+
+on:
+  push:
+    branches: [master]
+    # Зміни, які не потрапляють в образ, не варті перезбірки на сервері.
+    paths-ignore:
+      - '**.md'
+      - '.github/workflows/ci.yml'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Гілка або commit sha для розкатки'
+        required: false
+        default: ''
+
+# Два деплої одночасно поламали б стан репозиторію на сервері. Черга, без скасувань:
+# перерваний посеред міграції job — гірше за зайву хвилину очікування.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.sha }}
+
+      - name: Розв'язати commit sha
+        id: sha
+        run: echo "value=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Налаштувати ssh
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Ключ хоста беремо з секрету, якщо він заданий; keyscan — запасний
+          # варіант, він не захищає від MITM, лише від інтерактивного промпту.
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then
+            printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${SSH_PORT:-22}" -H "$SSH_HOST" > ~/.ssh/known_hosts 2>/dev/null
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Скопіювати скрипт розкатки
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+        run: |
+          scp -i ~/.ssh/deploy_key -P "${SSH_PORT:-22}" \
+            scripts/deploy.sh "$SSH_USER@$SSH_HOST:/tmp/messenger-deploy.sh"
+
+      - name: Розкатати
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/root/messenger' }}
+          HEALTHCHECK_URL: ${{ vars.HEALTHCHECK_URL || 'https://messenger.cash-come.com/' }}
+          SHA: ${{ steps.sha.outputs.value }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "${SSH_PORT:-22}" "$SSH_USER@$SSH_HOST" \
+            "DEPLOY_PATH='$DEPLOY_PATH' HEALTHCHECK_URL='$HEALTHCHECK_URL' \
+             bash /tmp/messenger-deploy.sh '$SHA'"
+
+      - name: Прибрати ключ
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
