@@ -1,4 +1,11 @@
-import { Logger, OnModuleInit, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  Logger,
+  OnModuleInit,
+  UseFilters,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   ConnectedSocket,
@@ -11,20 +18,40 @@ import {
 } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
 
-import { AuthService } from '../auth/auth.service';
+import { AuthService, type SessionRevokedEvent } from '../auth/auth.service';
 import { RedisService } from '../redis/redis.service';
 import { RoomsService, type RoomCreatedEvent } from '../rooms/rooms.service';
 import type { AppConfig } from '../config/configuration';
 import { ChatService } from './chat.service';
-import { DeleteMessageDto, RoomScopeDto, SendMessageDto, TypingDto, WS_EVENTS } from './dto/chat.dto';
+import {
+  CallNoticeDto,
+  DeleteMessageDto,
+  RoomScopeDto,
+  SendMessageDto,
+  TypingDto,
+  WS_EVENTS,
+} from './dto/chat.dto';
+import { WsExceptionFilter } from './ws-exception.filter';
 import { WsAuthGuard } from './ws-auth.guard';
+import { consumeWsBudget, WsThrottle, WsThrottleGuard } from './ws-throttle.guard';
+
+/** Keystroke-rate by nature: the client emits on every change to the input. */
+const TYPING_BUDGET = { limit: 60, windowMs: 10_000 };
+
+/** Tabs, devices and a reconnect that has not been reaped yet — all of them. */
+const MAX_SOCKETS_PER_USER = 20;
 
 interface AuthedSocket extends Socket {
-  data: { userId: string; username: string };
+  /** `exp` is the token's own deadline, re-read on every frame by WsAuthGuard. */
+  data: { userId: string; username: string; exp?: number };
 }
 
-@WebSocketGateway({ namespace: '/ws', cors: { origin: true, credentials: true } })
+// CORS is not declared here: RedisIoAdapter creates the server and sets the
+// allow-list for every namespace, so a second, looser copy of the rule on this
+// decorator would only be a lie about what is enforced.
+@WebSocketGateway({ namespace: '/ws' })
 @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+@UseFilters(new WsExceptionFilter())
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
   private readonly logger = new Logger(ChatGateway.name);
 
@@ -42,14 +69,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   async onModuleInit(): Promise<void> {
     const channel = this.config.get('redis.roomEventsChannel', { infer: true });
     await this.redis.subscribe(channel, (payload) => {
-      const event = payload as RoomCreatedEvent;
-      if (event?.type !== 'room.created') return;
+      const event = payload as RoomCreatedEvent | SessionRevokedEvent;
 
-      // socketsJoin travels through the Redis adapter, so members connected to
-      // any node are subscribed to the freshly created room right away.
-      for (const memberId of event.memberIds) {
-        this.server.in(`user:${memberId}`).socketsJoin(`room:${event.roomId}`);
-        this.server.to(`user:${memberId}`).emit(WS_EVENTS.roomCreated, { roomId: event.roomId });
+      // Both of these reach across nodes through the Redis adapter, which is
+      // the point: the socket they concern is rarely on the node that acted.
+      if (event?.type === 'room.created') {
+        // Members connected before the room existed are subscribed to it now.
+        for (const memberId of event.memberIds) {
+          this.server.in(`user:${memberId}`).socketsJoin(`room:${event.roomId}`);
+          this.server.to(`user:${memberId}`).emit(WS_EVENTS.roomCreated, { roomId: event.roomId });
+        }
+        return;
+      }
+
+      if (event?.type === 'session.revoked') {
+        // Signed out elsewhere: the connection outlives the session unless it
+        // is cut here, and it was authenticated once, at connect time.
+        this.server.in(`user:${event.userId}`).disconnectSockets(true);
       }
     });
   }
@@ -58,7 +94,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     try {
       const token = this.extractToken(client);
       const payload = await this.auth.verifyAccessToken(token);
-      client.data = { userId: payload.sub, username: payload.username };
+      client.data = { userId: payload.sub, username: payload.username, exp: payload.exp };
 
       // Every socket joins a personal room (direct notifications) plus all chat rooms.
       await client.join(`user:${payload.sub}`);
@@ -66,6 +102,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
       await Promise.all(roomIds.map((id) => client.join(`room:${id}`)));
 
       const sockets = await this.redis.markOnline(payload.sub, client.id);
+      // A person has a handful of tabs, not fifty. Past that it is a script
+      // buying itself extra per-socket rate budget, so the newest one goes.
+      if (sockets > MAX_SOCKETS_PER_USER) {
+        await this.redis.markOffline(payload.sub, client.id);
+        throw new Error(`too many concurrent sockets for user ${payload.sub}`);
+      }
       if (sockets === 1) this.broadcastPresence(payload.sub, true, roomIds);
     } catch (err) {
       this.logger.warn(`Rejected socket ${client.id}: ${String(err)}`);
@@ -84,7 +126,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     }
   }
 
-  @UseGuards(WsAuthGuard)
+  @UseGuards(WsAuthGuard, WsThrottleGuard)
+  @WsThrottle({ limit: 20, windowMs: 10_000 })
   @SubscribeMessage('message:send')
   async onSendMessage(
     @ConnectedSocket() client: AuthedSocket,
@@ -101,12 +144,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
   }
 
   /**
+   * The call announcement, posted in the room's voice. It is its own event so
+   * that `message:send` can refuse `type: SYSTEM` outright — see CallNoticeDto.
+   */
+  @UseGuards(WsAuthGuard, WsThrottleGuard)
+  @WsThrottle({ limit: 10, windowMs: 10_000 })
+  @SubscribeMessage('call:notice')
+  async onCallNotice(
+    @ConnectedSocket() client: AuthedSocket,
+    @MessageBody() dto: CallNoticeDto,
+  ): Promise<{ ok: true; id: string }> {
+    const message = await this.chat.postCallNotice(client.data.userId, dto);
+    this.server.to(`room:${dto.roomId}`).emit(WS_EVENTS.message, message);
+    return { ok: true, id: message.id };
+  }
+
+  /**
    * The refusal is answered, not thrown: the client hides the message the
    * moment it is asked to, so it needs a definite "no" to put it back. An
    * exception would only reach the socket's error channel, and the line would
    * stay hidden until the next reload.
    */
-  @UseGuards(WsAuthGuard)
+  @UseGuards(WsAuthGuard, WsThrottleGuard)
+  @WsThrottle({ limit: 30, windowMs: 10_000 })
   @SubscribeMessage('message:delete')
   async onDeleteMessage(
     @ConnectedSocket() client: AuthedSocket,
@@ -133,6 +193,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     @ConnectedSocket() client: AuthedSocket,
     @MessageBody() dto: TypingDto,
   ): Promise<void> {
+    // Dropped rather than refused: nobody is waiting on the answer, and an
+    // error per keystroke would be a louder flood than the one being stopped.
+    if (!consumeWsBudget(client, 'presence:typing', TYPING_BUDGET)) return;
+
     await this.rooms.assertMember(dto.roomId, client.data.userId);
     client.to(`room:${dto.roomId}`).emit(WS_EVENTS.typing, {
       roomId: dto.roomId,
@@ -142,7 +206,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect, On
     });
   }
 
-  @UseGuards(WsAuthGuard)
+  @UseGuards(WsAuthGuard, WsThrottleGuard)
+  @WsThrottle({ limit: 30, windowMs: 10_000 })
   @SubscribeMessage('room:join')
   async onJoinRoom(
     @ConnectedSocket() client: AuthedSocket,

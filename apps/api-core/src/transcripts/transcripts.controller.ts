@@ -16,7 +16,10 @@ export class TranscriptsController {
   }
 
   @Get('session/:callSessionId')
-  bySession(@Param('callSessionId', ParseUUIDPipe) callSessionId: string) {
-    return this.transcripts.listByCallSession(callSessionId);
+  bySession(
+    @CurrentUser() user: AuthUser,
+    @Param('callSessionId', ParseUUIDPipe) callSessionId: string,
+  ) {
+    return this.transcripts.listByCallSession(callSessionId, user.id);
   }
 }

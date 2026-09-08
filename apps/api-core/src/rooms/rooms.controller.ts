@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -32,7 +33,9 @@ export class RoomsController {
     return this.rooms.listAnonForUser(user.id);
   }
 
+  /** Each call can pull 200 people into a new room, so it is worth a ceiling. */
   @Post()
+  @Throttle({ default: { limit: 20, ttl: 3_600_000 } })
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateRoomDto) {
     return this.rooms.create(user.id, dto);
   }

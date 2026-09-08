@@ -157,6 +157,7 @@ export class RoomsService {
     }
 
     const memberIds = Array.from(new Set([ownerId, ...input.memberIds]));
+    await this.assertAddable(memberIds, ownerId);
 
     const room = await this.dataSource.transaction(async (manager) => {
       const created = await manager.save(
@@ -188,6 +189,32 @@ export class RoomsService {
   }
 
   /**
+   * Checks that everyone named can actually be put in a room.
+   *
+   * Ids that do not exist would otherwise surface as a foreign-key violation —
+   * a 500 for what is a bad request, and a way to probe which ids are real by
+   * timing. Guests are refused outright: an anonymous identity is addressed by
+   * the link that made it and belongs to that one room, so dragging one into a
+   * group would give it a place in the app it never agreed to.
+   */
+  private async assertAddable(memberIds: string[], ownerId: string): Promise<void> {
+    const invited = memberIds.filter((id) => id !== ownerId);
+    if (invited.length === 0) return;
+
+    const found = await this.users.find({
+      where: invited.map((id) => ({ id })),
+      select: { id: true, isGuest: true },
+    });
+
+    if (found.length !== invited.length) {
+      throw new BadRequestException('Some of the listed users do not exist');
+    }
+    if (found.some((user) => user.isGuest)) {
+      throw new BadRequestException('Anonymous users can only be reached through their link');
+    }
+  }
+
+  /**
    * Opens the 1:1 conversation between two users, creating it on first contact.
    * The room name is derived from the sorted pair of ids, so the unique index on
    * `rooms.name` — not a read-then-write check — is what prevents duplicates when
@@ -198,6 +225,12 @@ export class RoomsService {
 
     const peer = await this.users.findOne({ where: { id: peerId } });
     if (!peer) throw new NotFoundException('User not found');
+    // Same rule as a group: an anonymous identity lives in the room its link
+    // opened. A 1:1 chat started from a member list would follow someone out of
+    // the room they chose to be anonymous in.
+    if (peer.isGuest) {
+      throw new BadRequestException('Anonymous users can only be reached through their link');
+    }
 
     const name = `direct_${[userId, peerId].sort().join('_')}`;
 
@@ -247,10 +280,29 @@ export class RoomsService {
     const room = await this.rooms.findOne({ where: { id: roomId } });
     if (!room) throw new NotFoundException('Room not found');
 
-    const membership = await this.members.findOne({ where: { roomId, userId } });
-    if (!membership) throw new ForbiddenException('Not a member of this room');
+    return { room, membership: await this.assertMembership(room, userId) };
+  }
 
-    return { room, membership };
+  /**
+   * The same check, entered from the LiveKit side. Call endpoints are addressed
+   * by `rooms.name` — the slug LiveKit knows — and that name is derivable from
+   * the outside (a DIRECT room is `direct_` plus the two user ids), so it can
+   * never be treated as a secret: every one of them has to land here.
+   */
+  async assertMemberByName(
+    name: string,
+    userId: string,
+  ): Promise<{ room: Room; membership: RoomMember }> {
+    const room = await this.rooms.findOne({ where: { name } });
+    if (!room) throw new NotFoundException('Room not found');
+
+    return { room, membership: await this.assertMembership(room, userId) };
+  }
+
+  private async assertMembership(room: Room, userId: string): Promise<RoomMember> {
+    const membership = await this.members.findOne({ where: { roomId: room.id, userId } });
+    if (!membership) throw new ForbiddenException('Not a member of this room');
+    return membership;
   }
 
   findByLivekitName(name: string): Promise<Room | null> {

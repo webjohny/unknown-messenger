@@ -9,9 +9,10 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { randomInt, randomUUID } from 'node:crypto';
-import { IsNull, LessThan, MoreThan, QueryFailedError, Repository } from 'typeorm';
+import { IsNull, LessThan, MoreThan, Not, QueryFailedError, Repository } from 'typeorm';
 
 import { RefreshToken, User } from '../database/entities';
+import { RedisService } from '../redis/redis.service';
 import type { AppConfig } from '../config/configuration';
 import type { AuthTokens, JwtPayload, LoginDto, RegisterDto } from './dto/auth.dto';
 
@@ -22,6 +23,15 @@ const PG_UNIQUE_VIOLATION = '23505';
 /** How many times a guest name collision is retried before giving up. */
 const GUEST_NAME_ATTEMPTS = 8;
 
+/**
+ * Published when every session of a user is killed, so the gateway can hang up
+ * the sockets those sessions are holding — on whichever node they landed.
+ */
+export interface SessionRevokedEvent {
+  type: 'session.revoked';
+  userId: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -29,6 +39,7 @@ export class AuthService {
     @InjectRepository(RefreshToken) private readonly tokens: Repository<RefreshToken>,
     private readonly jwt: JwtService,
     private readonly config: ConfigService<AppConfig, true>,
+    private readonly redis: RedisService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthTokens> {
@@ -69,9 +80,14 @@ export class AuthService {
    * Mints a throwaway identity for someone who arrived through an invite link.
    * There is no email, no password and no way back in: the caller keeps the
    * tokens or loses the account, which is exactly what "anonymous" means here.
+   *
+   * `displayName` — already verified by the caller (see `verifyExternalIdentity`)
+   * — is what the room sees instead of the random `userNNNN`. The `username`
+   * login handle is still randomly allocated: it is an internal uniqueness key,
+   * not shown anywhere a display name isn't more appropriate.
    */
-  async createGuest(): Promise<{ user: User; tokens: AuthTokens }> {
-    const user = await this.saveGuestWithFreeName();
+  async createGuest(displayName?: string): Promise<{ user: User; tokens: AuthTokens }> {
+    const user = await this.saveGuestWithFreeName(displayName);
     return { user, tokens: await this.issueTokens({ sub: user.id, username: user.username }) };
   }
 
@@ -84,7 +100,7 @@ export class AuthService {
    * guests get the short `user3737` the design asks for, and the pool still
    * cannot run out once thousands of them exist.
    */
-  private async saveGuestWithFreeName(): Promise<User> {
+  private async saveGuestWithFreeName(displayName?: string): Promise<User> {
     for (let attempt = 0; attempt < GUEST_NAME_ATTEMPTS; attempt += 1) {
       const ceiling = 10_000 * 10 ** Math.floor(attempt / 2);
       const username = `user${randomInt(ceiling / 10, ceiling)}`;
@@ -94,7 +110,7 @@ export class AuthService {
             email: null,
             passwordHash: null,
             username,
-            displayName: username,
+            displayName: displayName ?? username,
             isGuest: true,
           }),
         );
@@ -118,12 +134,21 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const candidates = await this.tokens.find({
-      where: { userId: payload.sub, revokedAt: IsNull(), expiresAt: MoreThan(new Date()) },
+    if (!payload.jti) throw new UnauthorizedException('Invalid refresh token');
+
+    // One indexed row, then one hash comparison — the cost of this endpoint has
+    // to be flat, or holding many live sessions becomes a way to make the
+    // server do arbitrary work for a single unauthenticated request.
+    const stored = await this.tokens.findOne({
+      where: {
+        jti: payload.jti,
+        userId: payload.sub,
+        revokedAt: IsNull(),
+        expiresAt: MoreThan(new Date()),
+      },
     });
 
-    const matched = await this.findMatchingToken(candidates, refreshToken);
-    if (!matched) {
+    if (!stored || !(await argon2.verify(stored.tokenHash, refreshToken))) {
       // The signature is valid but the token is not active: it was already
       // rotated or revoked, which means a leaked copy is in play. Kill the
       // whole family rather than just refusing this one request.
@@ -132,18 +157,49 @@ export class AuthService {
     }
 
     // Rotation: the presented token dies with the request that used it.
-    await this.tokens.update({ id: matched.id }, { revokedAt: new Date() });
+    await this.tokens.update({ id: stored.id }, { revokedAt: new Date() });
 
-    return this.issueTokens({ sub: payload.sub, username: payload.username });
+    const tokens = await this.issueTokens({ sub: payload.sub, username: payload.username });
+
+    // The row just rotated is dead weight from here on, and so is everything
+    // this user has left behind. Swept on the way out rather than by a cron
+    // nobody has set up: the table only grows where sessions are being used.
+    await this.pruneUserTokens(payload.sub);
+
+    return tokens;
   }
 
+  /**
+   * Ends every session this user has. The open sockets have to be told: each
+   * one was authenticated at connect time and would otherwise keep receiving
+   * messages until its access token ran out — which is precisely the window a
+   * "log out everywhere" is meant to close.
+   */
   async logout(userId: string): Promise<void> {
     await this.tokens.update({ userId, revokedAt: IsNull() }, { revokedAt: new Date() });
+
+    const event: SessionRevokedEvent = { type: 'session.revoked', userId };
+    await this.redis.publish(
+      this.config.get('redis.roomEventsChannel', { infer: true }),
+      event,
+    );
   }
 
   /** Drops rotated/expired rows; call from a cron if the table grows. */
   async pruneExpiredTokens(): Promise<void> {
     await this.tokens.delete({ expiresAt: LessThan(new Date()) });
+  }
+
+  /**
+   * The same sweep, narrowed to one user so it can run inline on a refresh.
+   * Revoked rows go too: rotation retires one on every refresh, and a session
+   * left running for a month would otherwise leave a row behind each time.
+   */
+  private async pruneUserTokens(userId: string): Promise<void> {
+    await this.tokens.delete([
+      { userId, expiresAt: LessThan(new Date()) },
+      { userId, revokedAt: Not(IsNull()) },
+    ]);
   }
 
   /** Used by the WS gateway to authenticate a socket handshake. */
@@ -157,29 +213,21 @@ export class AuthService {
     }
   }
 
-  private async findMatchingToken(
-    candidates: RefreshToken[],
-    token: string,
-  ): Promise<RefreshToken | null> {
-    for (const candidate of candidates) {
-      if (await argon2.verify(candidate.tokenHash, token)) return candidate;
-    }
-    return null;
-  }
-
   private async issueTokens(payload: JwtPayload): Promise<AuthTokens> {
     const jwtConfig = this.config.get('jwt', { infer: true });
+    // `iat` has one-second resolution, so two refreshes inside the same second
+    // would otherwise produce byte-identical tokens — and rotation would be a
+    // no-op, since the "new" token is the one just revoked. It doubles as the
+    // handle the stored row is found by; see RefreshToken.jti.
+    const jti = randomUUID();
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(payload, {
         secret: jwtConfig.accessSecret,
         expiresIn: jwtConfig.accessTtl,
       }),
-      // `iat` has one-second resolution, so two refreshes inside the same second
-      // would otherwise produce byte-identical tokens — and rotation would be a
-      // no-op, since the "new" token is the one just revoked.
       this.jwt.signAsync(
-        { ...payload, jti: randomUUID() },
+        { ...payload, jti },
         { secret: jwtConfig.refreshSecret, expiresIn: jwtConfig.refreshTtl },
       ),
     ]);
@@ -187,6 +235,7 @@ export class AuthService {
     await this.tokens.save(
       this.tokens.create({
         userId: payload.sub,
+        jti,
         tokenHash: await argon2.hash(refreshToken),
         expiresAt: new Date(Date.now() + REFRESH_TTL_MS),
       }),

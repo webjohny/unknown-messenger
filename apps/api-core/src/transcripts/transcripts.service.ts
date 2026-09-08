@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -96,7 +96,18 @@ export class TranscriptsService implements OnModuleInit {
     }
   }
 
-  listByCallSession(callSessionId: string): Promise<TranscriptSegment[]> {
+  /**
+   * A transcript is the most private thing the app stores — the words people
+   * said out loud — so reaching one by its session id is checked exactly as
+   * hard as reaching it by room: the session names its room, and the room says
+   * who may read it.
+   */
+  async listByCallSession(callSessionId: string, userId: string): Promise<TranscriptSegment[]> {
+    const session = await this.sessions.findOne({ where: { id: callSessionId } });
+    if (!session) throw new NotFoundException('Call session not found');
+
+    await this.rooms.assertMember(session.roomId, userId);
+
     return this.segments.find({
       where: { callSessionId },
       order: { startMs: 'ASC' },

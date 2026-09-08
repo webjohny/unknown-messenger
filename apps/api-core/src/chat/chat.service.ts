@@ -4,7 +4,13 @@ import { Repository } from 'typeorm';
 
 import { Message, MessageType, RoomMember } from '../database/entities';
 import { RoomsService } from '../rooms/rooms.service';
-import type { DeleteMessageDto, SendMessageDto } from './dto/chat.dto';
+import type { CallNoticeDto, CallNoticeKind, DeleteMessageDto, SendMessageDto } from './dto/chat.dto';
+
+/** The room's own words for a call, kept where a client cannot reach them. */
+const CALL_NOTICE_BODY: Record<CallNoticeKind, string> = {
+  'call.started': 'Відеосесія розпочалась',
+  'call.ended': 'Відеосесію завершено',
+};
 
 @Injectable()
 export class ChatService {
@@ -24,6 +30,33 @@ export class ChatService {
         body: dto.body,
         type: dto.type ?? MessageType.TEXT,
         meta: dto.meta ?? null,
+      }),
+    );
+
+    return this.messages.findOneOrFail({
+      where: { id: saved.id },
+      relations: { sender: true },
+    });
+  }
+
+  /**
+   * Writes the SYSTEM line that announces a call. The caller chooses which of
+   * the two events happened and nothing else — the text comes from this file,
+   * which is what keeps `SYSTEM` a thing only the server can say.
+   */
+  async postCallNotice(senderId: string, dto: CallNoticeDto): Promise<Message> {
+    await this.rooms.assertMember(dto.roomId, senderId);
+
+    const saved = await this.messages.save(
+      this.messages.create({
+        roomId: dto.roomId,
+        senderId,
+        body: CALL_NOTICE_BODY[dto.kind],
+        type: MessageType.SYSTEM,
+        meta:
+          dto.kind === 'call.ended' && dto.durationMs !== undefined
+            ? { kind: dto.kind, durationMs: dto.durationMs }
+            : { kind: dto.kind },
       }),
     );
 

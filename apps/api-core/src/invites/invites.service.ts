@@ -2,7 +2,7 @@ import { GoneException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 
 import { AuthService } from '../auth/auth.service';
 import type { AuthTokens } from '../auth/dto/auth.dto';
@@ -22,6 +22,7 @@ import {
 } from '../database/entities';
 import { RoomsService } from '../rooms/rooms.service';
 import type { CreatedInvite, CreateInviteDto, InvitePreview, InviteSession } from './dto/invites.dto';
+import { verifyExternalIdentity } from './external-identity';
 
 const DEFAULT_TITLE = 'Анонімний чат';
 
@@ -131,14 +132,16 @@ export class InvitesService {
    * own name; anyone else becomes a guest at this moment and not before, so a
    * link that is never opened costs nothing.
    */
-  async accept(token: string, actor: AuthUser | null): Promise<InviteSession> {
+  async accept(token: string, actor: AuthUser | null, assertion?: string): Promise<InviteSession> {
     const invite = await this.invites.findOne({ where: { token } });
     if (!invite) throw new NotFoundException('Invite not found');
 
     const dead = this.liveness(invite);
     if (dead) throw new GoneException(dead);
 
-    const { user, tokens } = await this.resolveActor(actor);
+    const assertionSecret = this.config.get('externalAssertionSecret', { infer: true });
+    const identity = assertionSecret ? verifyExternalIdentity(assertion, assertionSecret) : null;
+    const { user, tokens } = await this.resolveActor(actor, identity?.displayName);
 
     const already = await this.members.findOneBy({ roomId: invite.roomId, userId: user.id });
     if (!already) {
@@ -169,6 +172,37 @@ export class InvitesService {
     });
 
     return { roomId: room.id, room, tokens, actingAs: describe(user) };
+  }
+
+  /**
+   * Closes every live link into a room. A link that has been passed on cannot
+   * be taken back from whoever holds it, so revoking is the only way an
+   * anonymous room ever stops accepting strangers — the column was always
+   * there, and until now nothing could set it.
+   *
+   * Any member may do it, not just the owner: a room reached by a link that has
+   * leaked is everyone's problem, and in an anonymous room the "owner" is
+   * whichever guest happened to press the button first.
+   *
+   * @returns how many links this closed; zero when there was nothing live.
+   */
+  async revokeForRoom(roomId: string, userId: string): Promise<{ revoked: number }> {
+    await this.roomsService.assertMember(roomId, userId);
+
+    const result = await this.invites.update(
+      { roomId, revokedAt: IsNull() },
+      { revokedAt: new Date() },
+    );
+
+    if (result.affected) {
+      await this.postSystemMessage(
+        roomId,
+        userId,
+        'Посилання-запрошення відкликано. Нові учасники більше не приєднаються.',
+      );
+    }
+
+    return { revoked: result.affected ?? 0 };
   }
 
   /** Only the room's members may read back the link that opens it. */
@@ -214,11 +248,16 @@ export class InvitesService {
    * The identity to act as. Nobody signed in means a guest is minted right
    * here — and its tokens have to travel back to the browser, because that is
    * the only copy of an account with no password to sign in with again.
+   *
+   * `displayName` — verified by the caller via `verifyExternalIdentity` — only
+   * applies to a freshly minted guest: a signed-in visitor already has a name,
+   * and overwriting it from an unrelated site's assertion is not this
+   * parameter's job.
    */
-  private async resolveActor(actor: AuthUser | null): Promise<ResolvedActor> {
+  private async resolveActor(actor: AuthUser | null, displayName?: string): Promise<ResolvedActor> {
     if (actor) return { user: actor, tokens: null };
 
-    const { user, tokens } = await this.auth.createGuest();
+    const { user, tokens } = await this.auth.createGuest(displayName);
     return { user, tokens };
   }
 

@@ -37,18 +37,22 @@ export class LivekitController {
   }
 
   @Get(':name/participants')
-  participants(@Param('name') name: string) {
-    return this.livekit.listParticipants(name);
+  participants(@CurrentUser() user: AuthUser, @Param('name') name: string) {
+    return this.livekit.listParticipants(user, name);
   }
 
   @Delete(':name/participants/:identity')
-  async kick(@Param('name') name: string, @Param('identity') identity: string): Promise<void> {
-    await this.livekit.removeParticipant(name, identity);
+  async kick(
+    @CurrentUser() user: AuthUser,
+    @Param('name') name: string,
+    @Param('identity') identity: string,
+  ): Promise<void> {
+    await this.livekit.removeParticipant(user, name, identity);
   }
 
   @Post(':name/end')
-  async end(@Param('name') name: string): Promise<{ ok: true }> {
-    await this.livekit.endCallSession(name);
+  async end(@CurrentUser() user: AuthUser, @Param('name') name: string): Promise<{ ok: true }> {
+    await this.livekit.endCallSession(user, name);
     await this.redis.publish(this.config.get('redis.controlChannel', { infer: true }), {
       action: 'stop_transcription',
       roomName: name,

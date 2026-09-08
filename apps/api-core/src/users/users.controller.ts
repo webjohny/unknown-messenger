@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Patch, Query, UseGuards } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -11,7 +12,9 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly users: UsersService) {}
 
+  /** Typing a name is a burst of requests; walking the directory is a stream. */
   @Get('search')
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
   search(@Query('q') q = '') {
     return this.users.search(q);
   }

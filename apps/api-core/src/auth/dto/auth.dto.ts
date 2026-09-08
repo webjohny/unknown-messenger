@@ -37,6 +37,8 @@ export interface JwtPayload {
   username: string;
   /** Refresh tokens only: makes every issued token unique (see AuthService). */
   jti?: string;
+  /** Written by the signer, in seconds. Present on every verified token. */
+  exp?: number;
 }
 
 export interface AuthTokens {

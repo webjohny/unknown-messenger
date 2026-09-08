@@ -26,6 +26,18 @@ export class CreateInviteDto {
 }
 
 /**
+ * Body of the accept call. `assertion` is how a trusted embedder (see
+ * `verifyExternalIdentity`) hands a fresh guest their real display name
+ * instead of the random `userNNNN` — optional, since an invite link opened
+ * by hand has no embedder to sign one.
+ */
+export class AcceptInviteDto {
+  @IsOptional()
+  @IsString()
+  assertion?: string;
+}
+
+/**
  * `tokens` is non-null only when this very call minted a guest. A signed-in
  * caller keeps the session they already had, so handing them a second one
  * would silently replace their identity with an anonymous one.

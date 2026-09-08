@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AccessToken, RoomServiceClient, type VideoGrant } from 'livekit-server-sdk';
@@ -9,6 +9,15 @@ import { RoomsService } from '../rooms/rooms.service';
 import type { AppConfig } from '../config/configuration';
 import type { AuthUser } from '../auth/jwt.strategy';
 import type { JoinRoomDto, JoinRoomResponse } from './dto/livekit.dto';
+
+/**
+ * LiveKit answers "no such room" as a Twirp `not_found`, which the SDK surfaces
+ * as a plain error — there is no typed class to instanceof against, so the
+ * message is what there is to read.
+ */
+function isRoomMissing(err: unknown): boolean {
+  return /not_found|does not exist/i.test(String((err as { message?: string })?.message ?? err));
+}
 
 @Injectable()
 export class LivekitService {
@@ -74,15 +83,43 @@ export class LivekitService {
     return at.toJwt();
   }
 
-  async listParticipants(roomName: string) {
-    return this.roomClient.listParticipants(roomName);
+  /** Who is on the call — readable by the members of that room and nobody else. */
+  async listParticipants(user: AuthUser, roomName: string) {
+    await this.rooms.assertMemberByName(roomName, user.id);
+    try {
+      return await this.roomClient.listParticipants(roomName);
+    } catch (err) {
+      // `auto_create` is off, so a room the SFU has never heard of is simply a
+      // room with no call in it — an empty list, not a failure.
+      if (isRoomMissing(err)) return [];
+      throw err;
+    }
   }
 
-  async removeParticipant(roomName: string, identity: string): Promise<void> {
-    await this.roomClient.removeParticipant(roomName, identity);
+  /**
+   * Throwing someone off a call is the moderator action the LiveKit grant calls
+   * `roomAdmin` (see createJoinToken), so it is gated the same way — otherwise
+   * this endpoint would hand every member the power the token withholds.
+   */
+  async removeParticipant(user: AuthUser, roomName: string, identity: string): Promise<void> {
+    const { membership } = await this.rooms.assertMemberByName(roomName, user.id);
+    if (membership.role === MemberRole.MEMBER) {
+      throw new ForbiddenException('Only a room moderator may remove participants');
+    }
+    try {
+      await this.roomClient.removeParticipant(roomName, identity);
+    } catch (err) {
+      if (isRoomMissing(err)) throw new NotFoundException('No call is running in this room');
+      throw err;
+    }
   }
 
-  async endCallSession(roomName: string): Promise<void> {
+  /**
+   * Closes the call record. Any member may do it: the client calls this on its
+   * own hang-up, and the last person to leave is usually not the owner.
+   */
+  async endCallSession(user: AuthUser, roomName: string): Promise<void> {
+    await this.rooms.assertMemberByName(roomName, user.id);
     await this.sessions.update(
       { livekitRoom: roomName, endedAt: IsNull() },
       { endedAt: new Date() },
