@@ -1266,6 +1266,10 @@
   object-fit: cover;
 }
 
+.mainVideoClickable {
+  cursor: pointer;
+}
+
 /* My own feed, floating over the other person's — grabbed by the box itself
    so the drag doesn't fight the <video> element underneath it. */
 .pip {

@@ -136,27 +136,54 @@ function ExpandedCall({
   );
 }
 
-/** The other person fills the screen; my own feed floats over it, draggable. */
+/**
+ * The other person fills the screen; my own feed floats over it, draggable.
+ * Either one is clickable to swap places — a tap toggles who's big, since with
+ * only two feeds "make the one I tapped big" and "swap the two" are the same
+ * thing.
+ */
 function OneToOne({ tracks }: { tracks: StageTrack[] }) {
   const local = tracks.find((track) => track.participant.isLocal) ?? null;
   const remote = tracks.find((track) => !track.participant.isLocal) ?? null;
-  const main = remote ?? local;
+  const canSwap = Boolean(local && remote && local !== remote);
+  const [swapped, setSwapped] = useState(false);
+
+  const main = canSwap && swapped ? local : (remote ?? local);
+  const pip = canSwap ? (swapped ? remote : local) : null;
+  const toggle = () => setSwapped((value) => !value);
 
   return (
     <>
       {main && (
-        <div className={css.mainVideo}>
+        <div
+          className={canSwap ? `${css.mainVideo} ${css.mainVideoClickable}` : css.mainVideo}
+          {...(canSwap
+            ? {
+                role: 'button',
+                tabIndex: 0,
+                onClick: toggle,
+                onKeyDown: (event: KeyboardEvent) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
+                  event.preventDefault();
+                  toggle();
+                },
+              }
+            : {})}
+        >
           {isTrackReference(main) && <VideoTrack trackRef={main} />}
           <span className={css.tileName}>{main.participant.name || main.participant.identity}</span>
         </div>
       )}
-      {local && remote && local !== remote && <Pip track={local} />}
+      {pip && <Pip track={pip} onSwap={toggle} />}
     </>
   );
 }
 
-/** My own feed as a small window, grabbed and moved anywhere on screen. */
-function Pip({ track }: { track: StageTrack }) {
+/**
+ * A small window over the main feed — grabbed and moved anywhere on screen,
+ * or tapped (without moving it) to swap back to the main feed.
+ */
+function Pip({ track, onSwap }: { track: StageTrack; onSwap: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const drag = useRef<{
     pointerId: number;
@@ -164,6 +191,7 @@ function Pip({ track }: { track: StageTrack }) {
     startY: number;
     originX: number;
     originY: number;
+    moved: boolean;
   } | null>(null);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
 
@@ -177,6 +205,7 @@ function Pip({ track }: { track: StageTrack }) {
       startY: event.clientY,
       originX: rect.left,
       originY: rect.top,
+      moved: false,
     };
     el.setPointerCapture(event.pointerId);
   };
@@ -185,27 +214,40 @@ function Pip({ track }: { track: StageTrack }) {
     const el = ref.current;
     const state = drag.current;
     if (!el || !state || state.pointerId !== event.pointerId) return;
+    const dx = event.clientX - state.startX;
+    const dy = event.clientY - state.startY;
+    // A few pixels of jitter is still a tap — only real movement cancels it.
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) state.moved = true;
     const maxX = Math.max(8, window.innerWidth - el.offsetWidth - 8);
     const maxY = Math.max(8, window.innerHeight - el.offsetHeight - 8);
     setPos({
-      x: Math.min(Math.max(8, state.originX + (event.clientX - state.startX)), maxX),
-      y: Math.min(Math.max(8, state.originY + (event.clientY - state.startY)), maxY),
+      x: Math.min(Math.max(8, state.originX + dx), maxX),
+      y: Math.min(Math.max(8, state.originY + dy), maxY),
     });
   };
 
   const endDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (drag.current?.pointerId === event.pointerId) drag.current = null;
+    const state = drag.current;
+    drag.current = null;
+    if (state?.pointerId === event.pointerId && !state.moved) onSwap();
   };
 
   return (
     <div
       ref={ref}
       className={css.pip}
+      role="button"
+      tabIndex={0}
       style={pos ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' } : undefined}
       onPointerDown={startDrag}
       onPointerMove={moveDrag}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        onSwap();
+      }}
     >
       {isTrackReference(track) && <VideoTrack trackRef={track} />}
     </div>
