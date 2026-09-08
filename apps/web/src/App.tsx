@@ -7,10 +7,12 @@ import {
   useNavigation,
   useSessionController,
 } from '@/core';
+import { EmbedCallScreen } from '@/embed/EmbedCallScreen';
 import { SkinEngine, type SkinView } from '@/skin-engine';
 
 const ROOM_PATH = /^\/room\/([^/?#]+)/;
 const INVITE_PATH = /^\/invite\/([^/?#]+)/;
+const EMBED_PATH = /^\/embed\/([^/?#]+)/;
 
 /**
  * The whole app, mounted once for every URL.
@@ -28,6 +30,7 @@ export function App() {
 
   const roomId = ROOM_PATH.exec(pathname)?.[1] ?? null;
   const inviteToken = INVITE_PATH.exec(pathname)?.[1] ?? null;
+  const embedToken = EMBED_PATH.exec(pathname)?.[1] ?? null;
 
   useEffect(() => {
     if (ready && !signedIn && roomId) replace('/');
@@ -43,8 +46,14 @@ export function App() {
   }, [callRoomId, roomId, leave]);
 
   // A guest landing on the home screen has an empty chat list and no way back
-  // to the one room they belong to; this returns them to it.
-  useGuestHomeRedirect(ready && signedIn && !roomId && !inviteToken);
+  // to the one room they belong to; this returns them to it. Not for embed: an
+  // embed visitor is a guest by construction and has nowhere else to be sent.
+  useGuestHomeRedirect(ready && signedIn && !roomId && !inviteToken && !embedToken);
+
+  // The embed screen is not a skin view and carries no chat-app session
+  // baggage — it manages its own accept/join, so it does not wait on `ready`
+  // the way the chat app below does.
+  if (embedToken) return <EmbedCallScreen token={embedToken} />;
 
   // Nothing is drawn before the session is known: the core has no look of its
   // own to show, and guessing would flash the wrong screen at a signed-in user.

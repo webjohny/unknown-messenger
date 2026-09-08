@@ -94,8 +94,16 @@ export function useRoomController(roomId: string): RoomController {
     enabled: Boolean(accessToken),
   });
 
-  const { connected, messages, deletedIds, typingUsers, sendMessage, deleteMessage, setTyping } =
-    useChatSocket(roomId, history.data ?? []);
+  const {
+    connected,
+    messages,
+    deletedIds,
+    typingUsers,
+    sendMessage,
+    deleteMessage,
+    announceCall,
+    setTyping,
+  } = useChatSocket(roomId, history.data ?? []);
 
   const room =
     rooms.data?.find((candidate) => candidate.id === roomId) ??
@@ -172,10 +180,7 @@ export function useRoomController(roomId: string): RoomController {
 
   const startCall = () => {
     call.start(roomId);
-    sendMessage('Відеосесія розпочалась', {
-      type: 'SYSTEM',
-      meta: { kind: 'call.started' },
-    });
+    announceCall('call.started');
   };
 
   // Closing the thread's announcement is the session's cue, not the button's:
@@ -186,12 +191,9 @@ export function useRoomController(roomId: string): RoomController {
     () =>
       onEnded((durationMs) => {
         if (durationMs === null) return;
-        sendMessage('Відеосесію завершено', {
-          type: 'SYSTEM',
-          meta: { kind: 'call.ended', durationMs },
-        });
+        announceCall('call.ended', durationMs);
       }),
-    [onEnded, sendMessage],
+    [onEnded, announceCall],
   );
 
   return {

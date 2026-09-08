@@ -110,6 +110,9 @@ services:
       # внутрішнє ім'я.
       LIVEKIT_URL: ${PUBLIC_LIVEKIT_URL}
       LIVEKIT_HTTP_URL: http://messenger-livekit:7880
+      # Порожнє значення — /embed/*'s accept ігнорує assertion і завжди мінтить
+      # анонімного user NNNN; заповнюється, коли з'явиться довірений embedder.
+      EXTERNAL_ASSERTION_SECRET: ${EXTERNAL_ASSERTION_SECRET:-}
     depends_on:
       messenger-postgres:
         condition: service_healthy
@@ -138,6 +141,9 @@ services:
       WEB_API_URL: ${PUBLIC_WEB_URL}
       WEB_WS_URL: ${PUBLIC_WEB_URL}
       WEB_LIVEKIT_URL: ${PUBLIC_LIVEKIT_URL}
+      # Хто сміє фреймити /embed/* (CSP frame-ancestors + Permissions-Policy).
+      # Порожнє — /embed/* незафреймовуваний, як і решта застосунку.
+      EMBED_ALLOWED_ORIGIN: ${EMBED_ALLOWED_ORIGIN:-}
     depends_on:
       - messenger-api
     networks: [internal, cashcome]

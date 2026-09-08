@@ -10,6 +10,9 @@ export interface SendOptions {
   meta?: Record<string, unknown>;
 }
 
+/** The call events a client may report; the server writes what they say. */
+export type CallNoticeKind = 'call.started' | 'call.ended';
+
 interface UseChatSocket {
   connected: boolean;
   messages: Message[];
@@ -23,6 +26,8 @@ interface UseChatSocket {
   onlineUsers: Set<string>;
   sendMessage: (body: string, options?: SendOptions) => void;
   deleteMessage: (messageId: string) => void;
+  /** Announces a call in the room's own voice; the wording lives on the server. */
+  announceCall: (kind: CallNoticeKind, durationMs?: number) => void;
   setTyping: (isTyping: boolean) => void;
 }
 
@@ -156,6 +161,19 @@ export function useChatSocket(roomId: string | null, initialMessages: Message[] 
   );
 
   /**
+   * No optimistic copy here, unlike sendMessage: the text does not exist on
+   * this side to show. It arrives with the server's broadcast, which reaches
+   * the announcing client too.
+   */
+  const announceCall = useCallback(
+    (kind: CallNoticeKind, durationMs?: number) => {
+      if (!socket || !roomId) return;
+      socket.emit('call:notice', { roomId, kind, ...(durationMs ? { durationMs } : {}) });
+    },
+    [socket, roomId],
+  );
+
+  /**
    * Hides the message at once and asks the server after. A deletion the author
    * has already decided on should not wait for a round trip to leave the screen;
    * a refusal puts it back, and everyone else sees it go when the broadcast
@@ -209,6 +227,7 @@ export function useChatSocket(roomId: string | null, initialMessages: Message[] 
     onlineUsers,
     sendMessage,
     deleteMessage,
+    announceCall,
     setTyping,
   };
 }

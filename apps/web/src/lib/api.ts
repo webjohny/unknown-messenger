@@ -70,12 +70,20 @@ export const api = {
 
   previewInvite: (token: string) => request<InvitePreview>(`/invites/${token}`),
 
-  acceptInvite: (token: string) =>
-    request<InviteSession>(`/invites/${token}/accept`, { method: 'POST' }),
+  /** `assertion` — see `/embed/:token` — hands a fresh guest their real display name. */
+  acceptInvite: (token: string, assertion?: string) =>
+    request<InviteSession>(`/invites/${token}/accept`, {
+      method: 'POST',
+      body: JSON.stringify({ assertion }),
+    }),
 
   /** The link that opens a room, for a member who wants to pass it on. */
   roomInviteLink: (roomId: string) =>
     request<{ url: string } | null>(`/invites/room/${roomId}/link`),
+
+  /** Closes the link. Everyone already in the room stays; nobody new arrives. */
+  revokeRoomInvite: (roomId: string) =>
+    request<{ revoked: number }>(`/invites/room/${roomId}/revoke`, { method: 'POST' }),
 
   createRoom: (body: { title: string; type: Room['type']; memberIds: string[] }) =>
     request<Room>('/rooms', { method: 'POST', body: JSON.stringify(body) }),

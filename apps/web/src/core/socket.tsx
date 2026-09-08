@@ -71,9 +71,22 @@ export function SessionSocketProvider({ children }: { children: React.ReactNode 
       }
     };
 
-    const onDisconnect = () => {
+    /**
+     * `io server disconnect` is the server hanging up on purpose — an expired
+     * access token, or a sign-out that killed this session. socket.io does not
+     * retry those on its own, and it is right not to: reconnecting with the
+     * same rejected token would only be hung up on again. A fresh token is
+     * what is needed, and getting one re-creates this socket through the store.
+     */
+    const onDisconnect = (reason: Socket.DisconnectReason) => {
       droppedAt = Date.now();
       setConnected(false);
+
+      if (reason !== 'io server disconnect') return;
+      if (Date.now() - lastRefreshAt < REFRESH_COOLDOWN_MS) return;
+
+      lastRefreshAt = Date.now();
+      void useAuthStore.getState().refresh();
     };
 
     const onConnectError = (err: Error) => {
